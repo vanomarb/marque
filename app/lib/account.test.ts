@@ -4,6 +4,7 @@ import {
   ACCOUNT_KEY,
   BRIEFS_KEY,
   MAX_BRIEFS,
+  accountLabel,
   clearSession,
   codeMatches,
   demoCode,
@@ -42,7 +43,7 @@ const blockedStore: KeyValueStore = {
   },
 }
 
-const launch: Selection = { identity: true, website: { pages: 6 }, social: null, ads: false, shoots: 0, print: 0 }
+const launch: Selection = { identity: true, website: { pages: 6, managed: true }, social: null, ads: false, shoots: 0, print: 0, firstProject: true }
 const at = (iso: string) => new Date(iso)
 
 test('the keys are the ones the Privacy and Cookie pages list', () => {
@@ -50,18 +51,13 @@ test('the keys are the ones the Privacy and Cookie pages list', () => {
   assert.equal(BRIEFS_KEY, 'marque.briefs')
 })
 
-test('an email address or a Philippine mobile number is a contact', () => {
+test('an email address is a contact', () => {
   assert.deepEqual(parseContact(' ana.reyes@example.com '), { kind: 'email', value: 'ana.reyes@example.com' })
   assert.deepEqual(parseContact('ana@mail.example.co'), { kind: 'email', value: 'ana@mail.example.co' })
-  assert.deepEqual(parseContact('0917 123 4567'), { kind: 'mobile', value: '09171234567' })
-  assert.deepEqual(parseContact('+63 917-123-4567'), { kind: 'mobile', value: '09171234567' })
-  assert.deepEqual(parseContact('639171234567'), { kind: 'mobile', value: '09171234567' })
 })
 
-test('a bare ten-digit mobile number that starts with 9 is how many people type it, and gets its 0', () => {
-  assert.deepEqual(parseContact('917 123 4567'), { kind: 'mobile', value: '09171234567' })
-  assert.deepEqual(parseContact('9171234567'), { kind: 'mobile', value: '09171234567' })
-  for (const bad of ['817 123 4567', '91712345678', '917123456', '+9171234567']) assert.equal(parseContact(bad), null, bad)
+test('a phone number is not a contact: the studio replies by email, wherever the client is', () => {
+  for (const bad of ['+1 415 555 0100', '415 555 0100', '+44 20 7946 0000', '9171234567']) assert.equal(parseContact(bad), null, bad)
 })
 
 test('an email address needs a name in every part of its domain', () => {
@@ -76,7 +72,6 @@ test('anything else is not a contact', () => {
 
 test('contacts are shown masked', () => {
   assert.equal(maskContact({ kind: 'email', value: 'ana.reyes@example.com' }), 'a••••••••@example.com')
-  assert.equal(maskContact({ kind: 'mobile', value: '09171234567' }), '0917 ••• 4567')
 })
 
 test('a first name is required and kept short', () => {
@@ -103,6 +98,17 @@ test('a session saves, loads and clears', () => {
   assert.deepEqual(loadSession(store), { firstName: 'Ana', contact: { kind: 'email', value: 'ana@example.com' } })
   clearSession(store)
   assert.equal(loadSession(store), null)
+})
+
+test('signing in with email alone keeps no name, and the header calls the visitor by their email', () => {
+  const store = memoryStore()
+  const nameless = { firstName: null, contact: { kind: 'email' as const, value: 'ana@example.com' } }
+  assert.ok(saveSession(store, nameless))
+  assert.deepEqual(loadSession(store), nameless)
+  assert.equal(accountLabel(nameless), 'ana@example.com')
+  assert.equal(accountLabel({ firstName: 'Ana Maria', contact: nameless.contact }), 'Ana', 'a first name, first word only')
+  store.data.set(ACCOUNT_KEY, JSON.stringify({ contact: nameless.contact }))
+  assert.deepEqual(loadSession(store), nameless, 'a missing name is no name')
 })
 
 test('a damaged or foreign session is ignored', () => {
@@ -135,7 +141,7 @@ test('briefs saved from the builder come back newest first, and can be removed',
 test('saving the same selection as the newest brief adds no copy and says it is already saved', () => {
   const store = memoryStore()
   const first = savedBrief(saveBrief(store, launch, at('2026-11-18T02:00:00Z')))
-  const again = saveBrief(store, { ...launch, website: { pages: 6 } }, at('2026-11-18T03:00:00Z'))
+  const again = saveBrief(store, { ...launch, website: { pages: 6, managed: true } }, at('2026-11-18T03:00:00Z'))
   assert.equal(again.status, 'already-saved')
   assert.equal(again.status === 'already-saved' && again.brief.id, first.id)
   assert.equal(loadBriefs(store).length, 1)
@@ -143,6 +149,22 @@ test('saving the same selection as the newest brief adds no copy and says it is 
   savedBrief(saveBrief(store, { ...launch, ads: true }, at('2026-11-18T04:00:00Z')))
   savedBrief(saveBrief(store, launch, at('2026-11-18T05:00:00Z')))
   assert.equal(loadBriefs(store).length, 3)
+  // Switching the website to handed over is a different brief.
+  savedBrief(saveBrief(store, { ...launch, website: { pages: 6, managed: false } }, at('2026-11-18T06:00:00Z')))
+  assert.equal(loadBriefs(store).length, 4)
+})
+
+test('a brief saved before the managed choice and the discount still loads, website handed over and no discount', () => {
+  const store = memoryStore()
+  const old = { id: 'old', savedAt: '2026-11-01T02:00:00.000Z', selection: { identity: true, website: { pages: 7 }, social: null, ads: false, shoots: 0, print: 0 } }
+  store.data.set(BRIEFS_KEY, JSON.stringify([old, { ...old, id: 'odd', selection: { ...old.selection, website: { pages: 7, managed: 'yes' } } }]))
+  const briefs = loadBriefs(store)
+  assert.deepEqual(briefs.map((b) => b.id), ['old'], 'a website with a managed that is not true or false is dropped')
+  assert.deepEqual(briefs[0].selection.website, { pages: 7, managed: false })
+  assert.equal(briefs[0].selection.firstProject, false)
+  // Saving the same brief again after loading it compares managed and the discount too, so it is already saved.
+  assert.equal(saveBrief(store, { ...old.selection, website: { pages: 7, managed: false }, firstProject: false }).status, 'already-saved')
+  assert.equal(saveBrief(store, { ...old.selection, website: { pages: 7, managed: false }, firstProject: true }, at('2026-11-02T02:00:00Z')).status, 'saved')
 })
 
 test('only the newest briefs are kept, and a save at the cap says how many old ones went', () => {
@@ -178,7 +200,7 @@ test('damaged brief records are dropped, not shown', () => {
 test('with storage blocked or missing, nothing throws, nobody is signed in and nothing is saved', () => {
   for (const store of [blockedStore, null]) {
     assert.equal(loadSession(store), null)
-    assert.equal(saveSession(store, { firstName: 'Ana', contact: { kind: 'mobile', value: '09171234567' } }), false)
+    assert.equal(saveSession(store, { firstName: 'Ana', contact: { kind: 'email', value: 'ana@example.com' } }), false)
     assert.doesNotThrow(() => clearSession(store))
     assert.deepEqual(loadBriefs(store), [])
     assert.deepEqual(saveBrief(store, launch, at('2026-11-18T02:00:00Z')), { status: 'not-saved' })

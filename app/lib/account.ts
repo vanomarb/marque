@@ -1,4 +1,4 @@
-import { isSelection, sameSelection, type Selection } from './estimate.ts'
+import { fromStored, isSelection, sameSelection, type Selection, type StoredSelection } from './estimate.ts'
 
 /** The part of Storage this module uses, so tests can pass a stand-in. */
 export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
@@ -8,10 +8,11 @@ export const ACCOUNT_KEY = 'marque.account'
 export const BRIEFS_KEY = 'marque.briefs'
 export const MAX_BRIEFS = 12
 
-export type Contact = { kind: 'email' | 'mobile'; value: string }
+export type Contact = { kind: 'email'; value: string }
 
 export interface Session {
-  firstName: string
+  /** Asked when an account is created; signing in with email alone leaves it null. */
+  firstName: string | null
   contact: Contact
 }
 
@@ -22,22 +23,16 @@ export interface Brief {
   selection: Selection
 }
 
-/** The header partial's script copies EMAIL and MOBILE; a test holds the copies to these. */
+/** The header partial's script copies EMAIL; a test holds the copy to it. */
 export const EMAIL = /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]{2,}$/
-/** A Philippine mobile number once spaces, dashes and brackets are gone: 09…, +63 9…, 63 9…, or the bare ten digits 9…. */
-export const MOBILE = /^(?:\+?63|0)?(9\d{9})$/
-
-/** Mobile numbers come back in the 09… form. */
+/** The studio replies by email, wherever the client is. */
 export function parseContact(input: string): Contact | null {
   const text = input.trim()
-  if (EMAIL.test(text)) return { kind: 'email', value: text }
-  const mobile = text.replace(/[\s().-]/g, '').match(MOBILE)
-  return mobile ? { kind: 'mobile', value: `0${mobile[1]}` } : null
+  return EMAIL.test(text) ? { kind: 'email', value: text } : null
 }
 
-/** "a••••@example.com" or "0917 ••• 4567". */
+/** "a••••@example.com". */
 export function maskContact(contact: Contact): string {
-  if (contact.kind === 'mobile') return `${contact.value.slice(0, 4)} ••• ${contact.value.slice(-4)}`
   const [local, domain] = contact.value.split('@')
   return `${local.slice(0, 1)}${'•'.repeat(Math.max(local.length - 1, 1))}@${domain}`
 }
@@ -79,12 +74,12 @@ function write(store: KeyValueStore | null, key: string, value: unknown): boolea
 
 function isSession(value: unknown): value is Session {
   const v = value as Session | null
+  const name: unknown = v?.firstName
   return (
     !!v &&
-    typeof v.firstName === 'string' &&
-    validateFirstName(v.firstName) === null &&
+    (name === undefined || name === null || (typeof name === 'string' && validateFirstName(name) === null)) &&
     !!v.contact &&
-    (v.contact.kind === 'email' || v.contact.kind === 'mobile') &&
+    v.contact.kind === 'email' &&
     typeof v.contact.value === 'string' &&
     parseContact(v.contact.value) !== null
   )
@@ -92,7 +87,12 @@ function isSession(value: unknown): value is Session {
 
 export function loadSession(store: KeyValueStore | null): Session | null {
   const value = read(store, ACCOUNT_KEY)
-  return isSession(value) ? { firstName: value.firstName.trim(), contact: value.contact } : null
+  return isSession(value) ? { firstName: value.firstName ? value.firstName.trim() : null, contact: { kind: 'email', value: value.contact.value.trim() } } : null
+}
+
+/** What the header calls a signed-in visitor: their first name, or their email address when they gave no name. */
+export function accountLabel(session: Session): string {
+  return session.firstName ? session.firstName.split(/\s+/)[0] : session.contact.value
 }
 
 export function saveSession(store: KeyValueStore | null, session: Session): boolean {
@@ -107,15 +107,17 @@ export function clearSession(store: KeyValueStore | null): void {
   }
 }
 
-function isBrief(value: unknown): value is Brief {
-  const v = value as Brief | null
+type StoredBrief = Omit<Brief, 'selection'> & { selection: StoredSelection }
+
+function isBrief(value: unknown): value is StoredBrief {
+  const v = value as StoredBrief | null
   return !!v && typeof v.id === 'string' && v.id.length > 0 && typeof v.savedAt === 'string' && !Number.isNaN(Date.parse(v.savedAt)) && isSelection(v.selection)
 }
 
-/** Newest first; damaged records are dropped. */
+/** Newest first; damaged records are dropped, and a website saved before the managed choice reads as handed over. */
 export function loadBriefs(store: KeyValueStore | null): Brief[] {
   const value = read(store, BRIEFS_KEY)
-  const list = Array.isArray(value) ? value.filter(isBrief) : []
+  const list: Brief[] = Array.isArray(value) ? value.filter(isBrief).map((b) => ({ id: b.id, savedAt: b.savedAt, selection: fromStored(b.selection) })) : []
   return list.sort((a, b) => b.savedAt.localeCompare(a.savedAt))
 }
 

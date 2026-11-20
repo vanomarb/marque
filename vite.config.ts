@@ -8,11 +8,12 @@ import { BASE, LOCAL_SITE_URL, checkSiteUrl, leftoverPlaceholders } from './buil
 
 const page = (name: string) => fileURLToPath(new URL(name, import.meta.url))
 
-// Every folder in app/ with an index.html is a page, so adding one needs no change here.
+// Every folder in app/ with an index.html is a page, nested ones too (works/usual/), so adding one needs no change here.
 const pages = Object.fromEntries(
-  readdirSync(page('./app/'), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(page(`./app/${entry.name}/index.html`)))
-    .map((entry) => [entry.name, page(`./app/${entry.name}/index.html`)]),
+  readdirSync(page('./app/'), { recursive: true, encoding: 'utf8' })
+    .map((file) => file.replaceAll('\\', '/'))
+    .filter((file) => file.endsWith('/index.html') && !file.startsWith('node_modules/'))
+    .map((file) => [file.slice(0, -'/index.html'.length).replaceAll('/', '-'), page(`./app/${file}`)]),
 )
 
 // Reads the partials on every transform, so an edit shows on reload; runs before inlinePhosphor to inline their icons.

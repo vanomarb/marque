@@ -2,15 +2,15 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { countFrom, countStep } from './count.ts'
 
-test('the first figure is set at once, not counted up from the ₱0 in the page', () => {
-  assert.equal(countFrom('₱0', undefined, 105_000), 105_000)
+test('the first figure is set at once, not counted up from the $0 in the page', () => {
+  assert.equal(countFrom('$0', undefined, 105_000), 105_000)
 })
 
 test('a change while a count is running carries on from the figure on screen, not from the last target', () => {
-  // Counting from ₱45,000 to ₱105,000, the visitor sees ₱78,300 when they untick the website.
-  assert.equal(countFrom('₱78,300', 105_000, 45_000), 78_300)
+  // Counting between two totals, the visitor sees $78,300 when they change the brief mid-count.
+  assert.equal(countFrom('$78,300', 105_000, 45_000), 78_300)
   // At rest the figure on screen is the last target.
-  assert.equal(countFrom('₱45,000', 45_000, 60_000), 45_000)
+  assert.equal(countFrom('$45,000', 45_000, 60_000), 45_000)
   // Text that isn't a peso figure falls back to the last target.
   assert.equal(countFrom('', 45_000, 60_000), 45_000)
   assert.equal(countFrom(null, 45_000, 60_000), 45_000)

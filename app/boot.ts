@@ -1,10 +1,10 @@
-import { initConceptDialog } from './shared/concept.ts'
 import { initNav } from './shared/nav.ts'
 import { initReveal } from './shared/reveal.ts'
 import { initMockForms } from './shared/forms.ts'
 import { initBuilder } from './start/builder.ts'
 import { initContact } from './start/contact.ts'
 import { initAccount } from './account/account.ts'
+import { initWorks } from './works/works.ts'
 
 /** The forms are switched off in the HTML so that, without this script, a submit can never put what a visitor typed into the URL. */
 function enableForms(): void {
@@ -28,11 +28,11 @@ function mount(selector: string, init: (root: HTMLElement) => void): void {
 /** main.ts calls this in the browser and tests/harness.ts calls it in jsdom, so the tests run exactly this. */
 export function boot(): void {
   start('forms on', enableForms)
-  start('concept dialog', initConceptDialog)
   start('navigation', initNav)
   start('forms', initMockForms)
   mount('[data-builder]', initBuilder)
   mount('[data-contact]', initContact)
   mount('[data-account]', initAccount)
+  mount('[data-works]', initWorks)
   start('scroll reveal', initReveal)
 }

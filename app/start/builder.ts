@@ -1,7 +1,7 @@
 import { MAX_BRIEFS, loadBriefs, loadSession, saveBrief } from '../lib/account.ts'
-import { DEFAULT_SOCIAL, LIMITS, PAGES, briefText, estimate, formatWeeks, type Platforms, type Posts, type Selection, type ServiceId } from '../lib/estimate.ts'
-import { formatLongDate, manilaTime } from '../lib/time.ts'
-import { peso } from '../lib/format.ts'
+import { DEFAULT_SOCIAL, DEFAULT_WEBSITE, LIMITS, PAGES, briefText, estimate, formatDays, type LineId, type Platforms, type Posts, type Selection, type ServiceId } from '../lib/estimate.ts'
+import { formatLongDate, localDate } from '../lib/time.ts'
+import { dollars, signedDollars } from '../lib/format.ts'
 import { selectionFromSearch } from '../lib/start-link.ts'
 import { showPeso } from './count.ts'
 import { announce } from '../shared/fields.ts'
@@ -13,17 +13,25 @@ export function initBuilder(root: HTMLElement): void {
   const pick = (id: ServiceId) => $<HTMLInputElement>(`[data-service="${id}"] [data-pick]`)!
   const counter = (name: string) => $<HTMLOutputElement>(`[data-count="${name}"]`)!
   const radio = (name: string) => root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)
+  const firstProject = $<HTMLInputElement>('[data-first-project]')
+  const regularNote = $<HTMLElement>('[data-regular-note]')
   const status = $<HTMLElement>('[data-builder-status]')
   const announcer = $<HTMLElement>('[data-estimate-announce]')
   const limits: Record<string, [number, number]> = { pages: [1, PAGES.max], shoots: [1, LIMITS.shoots], pieces: [1, LIMITS.print] }
 
+  const managed = () => {
+    const choice = radio('after-launch')
+    return choice ? choice.value === 'managed' : DEFAULT_WEBSITE.managed
+  }
+
   const read = (): Selection => ({
     identity: pick('identity').checked,
-    website: pick('website').checked ? { pages: Number(counter('pages').value) } : null,
+    website: pick('website').checked ? { pages: Number(counter('pages').value), managed: managed() } : null,
     social: pick('social').checked ? { platforms: Number(radio('platforms')?.value ?? DEFAULT_SOCIAL.platforms) as Platforms, posts: Number(radio('posts')?.value ?? DEFAULT_SOCIAL.posts) as Posts } : null,
     ads: pick('ads').checked,
     shoots: pick('photo').checked ? Number(counter('shoots').value) : 0,
     print: pick('print').checked ? Number(counter('pieces').value) : 0,
+    firstProject: firstProject?.checked ?? true,
   })
 
   const setCount = (name: string, value: number) => {
@@ -37,7 +45,7 @@ export function initBuilder(root: HTMLElement): void {
     group?.querySelector<HTMLButtonElement>('[data-change="1"]')?.toggleAttribute('disabled', v >= max)
   }
 
-  const setRadio = (name: string, value: number) => {
+  const setRadio = (name: string, value: number | string) => {
     const input = root.querySelector<HTMLInputElement>(`input[name="${name}"][value="${value}"]`)
     if (input) input.checked = true
   }
@@ -45,7 +53,10 @@ export function initBuilder(root: HTMLElement): void {
   const write = (s: Selection) => {
     pick('identity').checked = s.identity
     pick('website').checked = !!s.website
-    if (s.website) setCount('pages', s.website.pages)
+    if (s.website) {
+      setCount('pages', s.website.pages)
+      setRadio('after-launch', s.website.managed ? 'managed' : 'handover')
+    }
     pick('social').checked = !!s.social
     if (s.social) {
       setRadio('platforms', s.social.platforms)
@@ -56,6 +67,7 @@ export function initBuilder(root: HTMLElement): void {
     if (s.shoots > 0) setCount('shoots', s.shoots)
     pick('print').checked = s.print > 0
     if (s.print > 0) setCount('pieces', s.print)
+    if (firstProject) firstProject.checked = s.firstProject
   }
 
   let announceTimer = 0
@@ -63,24 +75,29 @@ export function initBuilder(root: HTMLElement): void {
     const s = read()
     const e = estimate(s)
     for (const row of root.querySelectorAll<HTMLElement>('[data-line]')) {
-      const id = row.dataset.line as ServiceId
+      const id = row.dataset.line as LineId
       const line = e.lines.find((l) => l.id === id)
       row.toggleAttribute('data-on', !!line)
       const label = row.querySelector<HTMLElement>('[data-line-label]')
       const amount = row.querySelector<HTMLElement>('[data-line-amount]')
       if (label) label.textContent = line ? line.label.replace(' (ad spend billed separately)', '') : (label.dataset.name ?? '')
-      if (amount) amount.textContent = line ? `${peso(line.amount)}${line.kind === 'monthly' ? ' a month' : ''}` : 'Not included'
+      if (amount) amount.textContent = line ? `${signedDollars(line.amount)}${line.kind === 'monthly' ? ' a month' : ''}` : (row.dataset.off ?? 'Not included')
+    }
+    if (regularNote) {
+      regularNote.hidden = e.discount === 0
+      regularNote.textContent = e.discount ? `Regular price ${dollars(e.oneTime + e.discount)}` : ''
     }
     for (const el of root.querySelectorAll<HTMLElement>('[data-total="oneTime"]')) showPeso(el, e.oneTime)
     for (const el of root.querySelectorAll<HTMLElement>('[data-total="monthly"]')) showPeso(el, e.monthly)
-    for (const el of root.querySelectorAll<HTMLElement>('[data-total="weeks"]')) {
-      el.textContent = e.lines.length === 0 ? 'Pick a service' : e.weeks ? `${e.weeks[0]} to ${e.weeks[1]} weeks` : 'Starts when you’re ready'
+    for (const el of root.querySelectorAll<HTMLElement>('[data-total="days"]')) {
+      el.textContent = e.lines.length === 0 ? 'Pick a service' : e.days ? formatDays(e.days) : 'Starts when you’re ready'
     }
     root.toggleAttribute('data-empty', e.lines.length === 0)
     if (opts.announce) {
       window.clearTimeout(announceTimer)
       announceTimer = window.setTimeout(() => {
-        const text = e.lines.length === 0 ? 'Nothing picked.' : `Estimate: ${peso(e.oneTime)} one-time, ${peso(e.monthly)} a month, ${formatWeeks(e.weeks)}.`
+        const oneTime = `${dollars(e.oneTime)} one-time${e.discount ? ' with the first-project discount' : ''}`
+        const text = e.lines.length === 0 ? 'Nothing picked.' : `Estimate: ${oneTime}, ${dollars(e.monthly)} a month, ${formatDays(e.days)}.`
         announce(announcer, text)
       }, 450)
     }
@@ -89,6 +106,7 @@ export function initBuilder(root: HTMLElement): void {
   root.addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement
     if (input.name === 'platforms' || input.name === 'posts') pick('social').checked = true
+    if (input.name === 'after-launch') pick('website').checked = true
     render({ announce: true })
   })
 
@@ -164,7 +182,7 @@ export function initBuilder(root: HTMLElement): void {
     write(preset)
     const id = new URLSearchParams(window.location.search).get('brief')
     const brief = id ? briefs.find((b) => b.id === id) : null
-    if (brief) announce(status, `Opened your brief from ${formatLongDate(manilaTime(new Date(brief.savedAt)).isoDate)}.`)
+    if (brief) announce(status, `Opened your brief from ${formatLongDate(localDate(new Date(brief.savedAt)))}.`)
   }
   for (const name of Object.keys(limits)) setCount(name, Number(counter(name).value))
   render()

@@ -9,7 +9,7 @@
     <nav aria-label="Main">
       <button class="inline-flex min-h-11 items-center border border-ink px-3.5 text-sm font-[560] lg:hidden" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="site-menu" data-menu-button>Menu</button>
       <ul class="flex items-center gap-x-7 max-lg:hidden" data-menu>
-        <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%work/" data-page="work">Work</a></li>
+        <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%works/" data-page="works">Works</a></li>
         <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%services/" data-page="services">Services</a></li>
         <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%studio/" data-page="studio">Studio</a></li>
         <li><a class="nav-account inline-flex min-h-11 items-center gap-2 font-[520]" href="%BASE_URL%account/" data-page="account"><i data-icon="user-circle" data-weight="regular" class="size-5 flex-none"></i><span class="sr-only hidden in-data-signed-in:inline">Your briefs, signed in as </span><span class="link-quiet max-w-[12ch] truncate" data-account-name>Sign in</span></a></li>
@@ -34,7 +34,7 @@
       <div class="ruler" aria-hidden="true"></div>
       <ul>
         <li class="border-b border-rule">
-          <a class="menu-row" href="%BASE_URL%work/" data-page="work"><span class="margin-no" aria-hidden="true">01</span><span class="menu-name"><span class="link-quiet">Work</span></span></a>
+          <a class="menu-row" href="%BASE_URL%works/" data-page="works"><span class="margin-no" aria-hidden="true">01</span><span class="menu-name"><span class="link-quiet">Works</span></span></a>
         </li>
         <li class="border-b border-rule">
           <a class="menu-row" href="%BASE_URL%services/" data-page="services"><span class="margin-no" aria-hidden="true">02</span><span class="menu-name"><span class="link-quiet">Services</span></span></a>
@@ -54,15 +54,16 @@
   ;(function () {
     try {
       var account = JSON.parse(localStorage.getItem('marque.account') || 'null')
-      var firstName = account && typeof account.firstName === 'string' ? account.firstName.trim() : ''
+      var name = account ? account.firstName : null
+      var named = typeof name === 'string' && name.trim() !== '' && name.trim().length <= 40
       var contact = account && account.contact
       var value = contact && typeof contact.value === 'string' ? contact.value.trim() : ''
-      var known = !!contact && (contact.kind === 'email' || contact.kind === 'mobile')
-      var reachable = /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]{2,}$/.test(value) || /^(?:\+?63|0)?(9\d{9})$/.test(value.replace(/[\s().-]/g, ''))
-      if (firstName && firstName.length <= 40 && known && reachable) {
+      var known = !!contact && contact.kind === 'email'
+      var reachable = /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]{2,}$/.test(value)
+      if ((named || name === undefined || name === null) && known && reachable) {
         document.documentElement.setAttribute('data-signed-in', '')
-        var first = firstName.split(/\s+/)[0]
-        document.querySelectorAll('[data-account-name]').forEach(function (label) { label.textContent = first })
+        var label = named ? name.trim().split(/\s+/)[0] : value
+        document.querySelectorAll('[data-account-name]').forEach(function (el) { el.textContent = label })
       }
     } catch {}
   })()

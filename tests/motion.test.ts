@@ -53,9 +53,9 @@ function classTokens(source: string): string[] {
 const unguardedUtilities = (source: string) => classTokens(source).filter((token) => /(^|:)(transition|animate-)/.test(token) && !/(^|:)motion-safe:/.test(token))
 
 test('with reduced motion, no utility in the markup or the scripts moves', () => {
-  const folders = readdirSync(app, { withFileTypes: true }).filter((e) => e.isDirectory() && readdirSync(new URL(`${e.name}/`, app)).includes('index.html'))
-  const pages = ['index.html', '404.html', 'components/header.html', 'components/footer.html', ...folders.map((e) => `${e.name}/index.html`)]
-  assert.ok(pages.length >= 13, 'finds every page')
+  const nested = readdirSync(app, { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('/index.html'))
+  const pages = ['index.html', '404.html', 'components/header.html', 'components/footer.html', ...nested]
+  assert.ok(pages.length >= 17, 'finds every page, the project pages under works/ too')
   const sources = [...pages, ...readdirSync(app, { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))]
   const animated = sources.flatMap((file) => classTokens(read(file))).filter((token) => /(^|:)(transition|animate-)/.test(token))
   assert.ok(animated.length > 0, 'finds the animated utilities')

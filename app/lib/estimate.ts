@@ -1,11 +1,11 @@
-import { peso } from './format.ts'
+import { dollars, signedDollars } from './format.ts'
 
 export type ServiceId = 'identity' | 'website' | 'social' | 'ads' | 'photo' | 'print'
 
 export interface Service {
   id: ServiceId
   name: string
-  /** Pesos: the cheapest the builder can price this service (a test holds it to that). */
+  /** Dollars, the regular price: the cheapest the builder can price this service without the first-project discount (a test holds it to that). */
   from: number
   unit: string
   includes: string
@@ -15,40 +15,66 @@ export interface Service {
 export type Platforms = 1 | 2 | 3 | 4
 export type Posts = 12 | 20 | 30
 
+export interface Website {
+  pages: number
+  /** True: Marque hosts and looks after the site for PRICE.managed a month. False: the code is handed over and the client hosts it. */
+  managed: boolean
+}
+
 export interface Selection {
   identity: boolean
-  website: { pages: number } | null
+  website: Website | null
   social: { platforms: Platforms; posts: Posts } | null
   ads: boolean
   shoots: number
   print: number
+  /** The client's first project with Marque: FIRST_PROJECT.percent comes off the one-time work. */
+  firstProject: boolean
 }
 
+/** A service, the monthly line a managed website adds, or the first-project discount (a negative one-time line). */
+export type LineId = ServiceId | 'managed' | 'discount'
+
 export interface Line {
-  id: ServiceId
+  id: LineId
   label: string
   amount: number
   kind: 'one-time' | 'monthly'
 }
 
 export interface Estimate {
+  /** After the first-project discount. */
   oneTime: number
   monthly: number
-  /** From and to; null when nothing is built (only monthly work, or nothing picked). */
-  weeks: [number, number] | null
+  /** What the first-project discount takes off the one-time work; 0 when it doesn't apply. */
+  discount: number
+  /** From and to, in days; null when nothing is built (only monthly work, or nothing picked). */
+  days: [number, number] | null
   lines: Line[]
 }
 
 // The page tests hold every price and timeline in the HTML to SERVICES, so a price changes only here.
-export const PRICE = { identity: 45_000, website: 60_000, ads: 15_000, shoot: 18_000, piece: 8_000 } as const
-export const PAGES = { included: 6, max: 12, extra: 6_000 } as const
+/** `managed` is the monthly fee for a website Marque hosts and looks after. Marque never sells or renews domains. */
+export const PRICE = { identity: 390, website: 690, managed: 39, ads: 250, shoot: 290, piece: 90 } as const
+export const PAGES = { included: 6, max: 12, extra: 60 } as const
 /** Two platforms with 12 posts is the base package; each platform more or fewer is perPlatform. */
-export const SOCIAL = { base: 25_000, perPlatform: 8_000, posts: { 12: 0, 20: 10_000, 30: 22_000 } } as const
-/** Identity and a website overlap, so together they take 7 to 11 weeks; shoots and print fit inside any build. */
-export const WEEKS = { identity: [4, 6], website: [4, 8], identityAndWebsite: [7, 11], shootsOrPrint: [1, 2] } as const satisfies Record<string, readonly [number, number]>
+export const SOCIAL = { base: 390, perPlatform: 100, posts: { 12: 0, 20: 120, 30: 250 } } as const
+/** Every one-time service, alone or together, is ready in 1 to 3 days. Day 3 is the promise the late-day credit backs. */
+export const DAYS = [1, 3] as const
+/** For each day past day 3, perDay comes off the final invoice, never more than the price of that service. */
+export const LATE_CREDIT = { perDay: 5 } as const
+/** New clients: this much off their first one-time project, taken off the regular prices. Monthly work is never discounted. */
+export const FIRST_PROJECT = { percent: 15 } as const
+export const DISCOUNT_LABEL = `First-project discount (${FIRST_PROJECT.percent}% off one-time work)`
 /** What ticking Social media starts at: the package every "from" price on the site names. */
 export const DEFAULT_SOCIAL: { platforms: Platforms; posts: Posts } = { platforms: 1, posts: 12 }
+/** What ticking Website starts at: the pages the base price covers, managed after launch. */
+export const DEFAULT_WEBSITE: Website = { pages: PAGES.included, managed: true }
 export const LIMITS = { shoots: 4, print: 10 } as const
+
+export const MANAGED_LABEL = 'Managed hosting (subdomain or your domain, SSL, backups, updates)'
+/** The late-day credit in one line, as the builder, the brief and the pages say it. */
+export const LATE_TEXT = `Ready by day ${DAYS[1]}, or ${dollars(LATE_CREDIT.perDay)} off for each day late, up to the price of that service.`
 
 const clampCount = (n: number, max: number) => Math.min(max, Math.max(0, Math.floor(Number.isFinite(n) ? n : 0)))
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
@@ -63,6 +89,16 @@ export function socialPrice(platforms: Platforms, posts: Posts): number {
   return SOCIAL.base + (platforms - 2) * SOCIAL.perPlatform + SOCIAL.posts[posts]
 }
 
+/** The regular one-time price with the first-project discount, in whole dollars: $690 is $587. */
+export function firstProjectPrice(regular: number): number {
+  return Math.round((regular * (100 - FIRST_PROJECT.percent)) / 100)
+}
+
+/** What comes off a service delivered `daysLate` days after day 3. */
+export function lateCredit(daysLate: number, price: number): number {
+  return Math.min(price, Math.max(0, Math.floor(daysLate)) * LATE_CREDIT.perDay)
+}
+
 export function estimate(s: Selection): Estimate {
   const lines: Line[] = []
   const shoots = clampCount(s.shoots, LIMITS.shoots)
@@ -71,10 +107,15 @@ export function estimate(s: Selection): Estimate {
   if (s.identity) lines.push({ id: 'identity', label: 'Brand identity', amount: PRICE.identity, kind: 'one-time' })
   if (s.website) {
     const pages = clampPages(s.website.pages)
-    lines.push({ id: 'website', label: `Website, ${plural(pages, 'page', 'pages')}`, amount: websitePrice(pages), kind: 'one-time' })
+    const managed = s.website.managed === true
+    lines.push({ id: 'website', label: `Website, ${plural(pages, 'page', 'pages')}${managed ? '' : ', code handed over'}`, amount: websitePrice(pages), kind: 'one-time' })
+    if (managed) lines.push({ id: 'managed', label: MANAGED_LABEL, amount: PRICE.managed, kind: 'monthly' })
   }
   if (shoots) lines.push({ id: 'photo', label: `Photo and video, ${plural(shoots, 'shoot', 'shoots')}`, amount: shoots * PRICE.shoot, kind: 'one-time' })
   if (print) lines.push({ id: 'print', label: `Menu, signage and print, ${plural(print, 'piece', 'pieces')}`, amount: print * PRICE.piece, kind: 'one-time' })
+  const regular = lines.filter((l) => l.kind === 'one-time').reduce((total, l) => total + l.amount, 0)
+  const discount = s.firstProject === true && regular > 0 ? regular - firstProjectPrice(regular) : 0
+  if (discount) lines.push({ id: 'discount', label: DISCOUNT_LABEL, amount: -discount, kind: 'one-time' })
   if (s.social) {
     const { platforms, posts } = s.social
     lines.push({ id: 'social', label: `Social media, ${plural(platforms, 'platform', 'platforms')}, ${posts} posts a month`, amount: socialPrice(platforms, posts), kind: 'monthly' })
@@ -83,54 +124,64 @@ export function estimate(s: Selection): Estimate {
 
   const sum = (kind: Line['kind']) => lines.filter((l) => l.kind === kind).reduce((total, l) => total + l.amount, 0)
 
-  const range = s.identity && s.website ? WEEKS.identityAndWebsite : s.identity ? WEEKS.identity : s.website ? WEEKS.website : shoots || print ? WEEKS.shootsOrPrint : null
-  return { oneTime: sum('one-time'), monthly: sum('monthly'), weeks: range ? [range[0], range[1]] : null, lines }
+  return { oneTime: sum('one-time'), monthly: sum('monthly'), discount, days: regular > 0 ? [DAYS[0], DAYS[1]] : null, lines }
 }
 
-export function formatWeeks(weeks: readonly [number, number] | null): string {
-  return weeks ? `${weeks[0]} to ${weeks[1]} weeks` : 'monthly work, no build timeline'
+export function formatDays(days: readonly [number, number] | null): string {
+  return days ? `${days[0]} to ${days[1]} days` : 'monthly work, no build timeline'
 }
 
 export const SERVICES: readonly Service[] = [
-  { id: 'identity', name: 'Brand identity', from: PRICE.identity, unit: 'one-time', includes: 'Logo, colours, type and a guidelines document', time: formatWeeks(WEEKS.identity) },
-  { id: 'website', name: 'Website', from: websitePrice(1), unit: 'one-time', includes: `Design and build, up to ${PAGES.included} pages`, time: formatWeeks(WEEKS.website) },
-  { id: 'social', name: 'Social media management', from: socialPrice(DEFAULT_SOCIAL.platforms, DEFAULT_SOCIAL.posts), unit: 'a month', includes: `1 platform, 12 posts a month, replies in office hours; 2 platforms ${peso(socialPrice(2, 12))}`, time: 'Month to month' },
-  { id: 'ads', name: 'Ads management', from: PRICE.ads, unit: 'a month', includes: 'Meta and Google ads; ad spend billed separately', time: 'Month to month' },
-  { id: 'photo', name: 'Photo and video', from: PRICE.shoot, unit: 'per shoot', includes: 'A half-day shoot: 20 edited photos or 3 short videos', time: formatWeeks(WEEKS.shootsOrPrint) },
-  { id: 'print', name: 'Menu, signage and print design', from: PRICE.piece, unit: 'per piece', includes: 'One menu, sign, flyer or packaging design, print-ready', time: formatWeeks(WEEKS.shootsOrPrint) },
+  { id: 'identity', name: 'Brand identity', from: PRICE.identity, unit: 'one-time', includes: 'Logo files, colours, type and a short guidelines PDF', time: formatDays(DAYS) },
+  { id: 'website', name: 'Website', from: websitePrice(1), unit: 'one-time', includes: `Design and build, up to ${PAGES.included} pages; we host it, or hand over the code`, time: formatDays(DAYS) },
+  { id: 'social', name: 'Social media management', from: socialPrice(DEFAULT_SOCIAL.platforms, DEFAULT_SOCIAL.posts), unit: 'a month', includes: `1 platform, 12 posts a month, same-day replies; 2 platforms ${dollars(socialPrice(2, 12))}`, time: 'Month to month' },
+  { id: 'ads', name: 'Ads management', from: PRICE.ads, unit: 'a month', includes: 'Meta and Google ads, run and reported monthly; ad spend paid to Meta or Google', time: 'Month to month' },
+  { id: 'photo', name: 'Photo and video', from: PRICE.shoot, unit: 'per shoot', includes: 'A half-day with a local photographer we book: 20 edited photos or 3 short videos', time: formatDays(DAYS) },
+  { id: 'print', name: 'Menu, signage and print design', from: PRICE.piece, unit: 'per piece', includes: 'One menu, sign, flyer or packaging design, with print-ready files', time: formatDays(DAYS) },
 ]
 
 export function briefText(s: Selection): string {
   const e = estimate(s)
   const head = 'Project brief from the Marque builder'
   if (e.lines.length === 0) return `${head}\n\nNo services picked yet.`
-  const lines = e.lines.map((l) => `${l.label}: ${peso(l.amount)}, ${l.kind === 'monthly' ? 'a month' : 'one-time'}`)
+  const lines = e.lines.map((l) => `${l.label}: ${signedDollars(l.amount)}, ${l.kind === 'monthly' ? 'a month' : 'one-time'}`)
   return [
     head,
     '',
     ...lines,
     '',
-    ...(e.oneTime > 0 ? [`One-time total: ${peso(e.oneTime)}`] : []),
-    `Monthly total: ${peso(e.monthly)}`,
-    `Timeline: ${formatWeeks(e.weeks)}`,
+    ...(e.oneTime > 0 ? [`One-time total: ${dollars(e.oneTime)}`] : []),
+    `Monthly total: ${dollars(e.monthly)}`,
+    `Timeline: ${formatDays(e.days)}`,
+    ...(e.days ? [LATE_TEXT] : []),
+    ...(s.website ? ['The website’s days start once the text and photos are in.'] : []),
   ].join('\n')
 }
 
 export function sameSelection(a: Selection, b: Selection): boolean {
-  const key = (s: Selection) => JSON.stringify([s.identity, s.website?.pages ?? null, s.social ? [s.social.platforms, s.social.posts] : null, s.ads, s.shoots, s.print])
+  const key = (s: Selection) => JSON.stringify([s.identity, s.website ? [s.website.pages, s.website.managed === true] : null, s.social ? [s.social.platforms, s.social.posts] : null, s.ads, s.shoots, s.print, s.firstProject === true])
   return key(a) === key(b)
 }
 
 const isCount = (n: unknown) => typeof n === 'number' && Number.isInteger(n) && n >= 0
 
-export function isSelection(value: unknown): value is Selection {
-  const v = value as Selection | null
+/** A selection as storage may hold it: older briefs have a website without `managed`, and no `firstProject`. */
+export type StoredSelection = Omit<Selection, 'website' | 'firstProject'> & { website: (Omit<Website, 'managed'> & { managed?: boolean }) | null; firstProject?: boolean }
+
+export function isSelection(value: unknown): value is StoredSelection {
+  const v = value as StoredSelection | null
   if (!v || typeof v !== 'object') return false
   if (typeof v.identity !== 'boolean' || typeof v.ads !== 'boolean') return false
   if (!isCount(v.shoots) || v.shoots > LIMITS.shoots || !isCount(v.print) || v.print > LIMITS.print) return false
-  if (v.website !== null && !(typeof v.website === 'object' && isCount(v.website.pages) && v.website.pages >= 1 && v.website.pages <= PAGES.max)) return false
+  if (v.website !== null && !(typeof v.website === 'object' && isCount(v.website.pages) && v.website.pages >= 1 && v.website.pages <= PAGES.max && (v.website.managed === undefined || typeof v.website.managed === 'boolean'))) return false
   if (v.social !== null && !(typeof v.social === 'object' && [1, 2, 3, 4].includes(v.social.platforms) && [12, 20, 30].includes(v.social.posts))) return false
+  if (v.firstProject !== undefined && typeof v.firstProject !== 'boolean') return false
   return true
+}
+
+/** Older briefs keep the prices they were saved with: a website without `managed` reads as handed over, and no `firstProject` as no discount. */
+export function fromStored(s: StoredSelection): Selection {
+  return { ...s, website: s.website ? { pages: s.website.pages, managed: s.website.managed === true } : null, firstProject: s.firstProject === true }
 }
 
 const SHORT: { test: (s: Selection) => boolean; name: string }[] = [

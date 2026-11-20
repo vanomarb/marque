@@ -17,7 +17,6 @@ export function initMockForms(): void {
       return
     }
     email.removeAttribute('aria-invalid')
-    status.textContent = 'Thanks. This is a demonstration site, so your address wasn’t sent or kept.'
-    form.reset()
+    status.textContent = 'Sign-up isn’t connected yet, so your address hasn’t been sent or kept.'
   })
 }

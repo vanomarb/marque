@@ -1,12 +1,17 @@
-const pesoNumber = new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 })
+const dollarNumber = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 
-/** 45000 → "₱45,000". */
-export function peso(amount: number): string {
-  return `₱${pesoNumber.format(Math.round(amount))}`
+/** 1100 → "$1,100". */
+export function dollars(amount: number): string {
+  return `$${dollarNumber.format(Math.round(amount))}`
 }
 
-export function parsePeso(text: string | null | undefined): number | null {
-  const digits = (text ?? '').replace(/[₱,\s]/g, '')
+/** -162 → "−$162", with a true minus sign, so a discount reads as one. */
+export function signedDollars(amount: number): string {
+  return amount < 0 ? `\u2212${dollars(-amount)}` : dollars(amount)
+}
+
+export function parseDollars(text: string | null | undefined): number | null {
+  const digits = (text ?? '').replace(/[$,\s]/g, '')
   return /^\d+$/.test(digits) ? Number(digits) : null
 }
 

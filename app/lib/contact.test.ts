@@ -8,7 +8,7 @@ test('contact fields are checked', () => {
 })
 
 test('names and businesses are 2 to 60 characters once trimmed', () => {
-  const ok = { name: 'Ana Reyes', business: 'Kape Mabolo', message: 'A logo and a menu board, please.' }
+  const ok = { name: 'Ana Reyes', business: 'Kape Corner', message: 'A logo and a menu board, please.' }
   assert.ok(validateContact({ ...ok, name: ' A ' }).name)
   assert.ok(validateContact({ ...ok, name: 'A'.repeat(61) }).name)
   assert.equal(validateContact({ ...ok, name: `  ${'A'.repeat(60)}  ` }).name, undefined)
@@ -17,7 +17,7 @@ test('names and businesses are 2 to 60 characters once trimmed', () => {
 })
 
 test('a message needs at least ten characters', () => {
-  const ok = { name: 'Ana', business: 'Kape Mabolo' }
+  const ok = { name: 'Ana', business: 'Kape Corner' }
   assert.ok(validateContact({ ...ok, message: 'Logo pls' }).message)
   assert.ok(validateContact({ ...ok, message: '          ' }).message)
   assert.equal(validateContact({ ...ok, message: 'A new logo' }).message, undefined)

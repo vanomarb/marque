@@ -1,21 +1,8 @@
-/** Marque is in Cebu, so "today" is always Asia/Manila, wherever the visitor is. */
-export interface ManilaTime {
-  /** YYYY-MM-DD. */
-  isoDate: string
-}
-
-const parts = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'Asia/Manila',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-export function manilaTime(at: Date): ManilaTime {
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.formatToParts(at).find((p) => p.type === type)?.value ?? ''
-  return {
-    isoDate: `${get('year')}-${get('month')}-${get('day')}`,
-  }
+/** The day a moment falls on, as YYYY-MM-DD, on the visitor's own calendar (or in timeZone, for the tests). */
+export function localDate(at: Date, timeZone?: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(at)
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? ''
+  return `${get('year')}-${get('month')}-${get('day')}`
 }
 
 const longDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })

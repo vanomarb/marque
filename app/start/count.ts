@@ -1,5 +1,5 @@
 import { countFrom, countStep } from '../lib/count.ts'
-import { peso } from '../lib/format.ts'
+import { dollars } from '../lib/format.ts'
 
 const running = new WeakMap<HTMLElement, number>()
 
@@ -12,13 +12,13 @@ export function showPeso(el: HTMLElement, amount: number): void {
   if (cancel) cancelAnimationFrame(cancel)
   running.delete(el)
   if (from === amount || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    el.textContent = peso(amount)
+    el.textContent = dollars(amount)
     return
   }
   const start = performance.now()
   const step = (now: number) => {
     const t = Math.min(1, (now - start) / 200)
-    el.textContent = peso(countStep(from, amount, t))
+    el.textContent = dollars(countStep(from, amount, t))
     if (t < 1) running.set(el, requestAnimationFrame(step))
     else running.delete(el)
   }

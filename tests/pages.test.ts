@@ -2,10 +2,11 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { includePartials } from '../build/partials.ts'
-import { peso } from '../app/lib/format.ts'
-import { DEFAULT_SOCIAL, SERVICES, estimate } from '../app/lib/estimate.ts'
+import { dollars } from '../app/lib/format.ts'
+import { DEFAULT_SOCIAL, LATE_TEXT, MANAGED_LABEL, PRICE, SERVICES, estimate, firstProjectPrice, formatDays } from '../app/lib/estimate.ts'
+import { WORKS, neighbours, sortWorks, type WorkId } from '../app/lib/works.ts'
 import { LAUNCH_SET } from '../app/lib/start-link.ts'
-import { EMAIL, MOBILE } from '../app/lib/account.ts'
+import { EMAIL } from '../app/lib/account.ts'
 import { BASE, leftoverPlaceholders } from '../build/site.ts'
 
 const root = new URL('../', import.meta.url)
@@ -13,7 +14,10 @@ const read = (path: string) => readFileSync(new URL(path, root), 'utf8')
 
 const PAGES = [
   { id: 'home', path: '' },
-  { id: 'work', path: 'work/' },
+  { id: 'works', path: 'works/' },
+  { id: 'usual', path: 'works/usual/' },
+  { id: 'bayline', path: 'works/bayline/' },
+  { id: 'enamel', path: 'works/enamel/' },
   { id: 'services', path: 'services/' },
   { id: 'studio', path: 'studio/' },
   { id: 'start', path: 'start/' },
@@ -24,8 +28,12 @@ const PAGES = [
   { id: 'accessibility', path: 'accessibility/' },
 ] as const
 type PageId = (typeof PAGES)[number]['id']
-const HEADER_PAGES: PageId[] = ['home', 'work', 'services', 'studio', 'start', 'account']
+const WORK_PAGES = ['usual', 'bayline', 'enamel'] as const satisfies readonly WorkId[]
+/** The pages the header links to; a project page marks Works as current. */
+const NAV_PAGES: PageId[] = ['home', 'works', 'services', 'studio', 'start', 'account']
+const HEADER_PAGES: PageId[] = [...NAV_PAGES, ...WORK_PAGES]
 const FOOTER_PAGES: PageId[] = ['terms', 'privacy', 'cookies', 'accessibility']
+const currentOf = (id: PageId): string => ((WORK_PAGES as readonly string[]).includes(id) ? 'works' : id)
 // The three sites are published beside Marque on the same Pages host, so a root-relative link reaches each one.
 const LIVE_SITES = { usual: '/usual/', bayline: '/bayline/', enamel: '/enamel/' }
 
@@ -39,9 +47,9 @@ const notFound = read('app/404.html')
 const count = (html: string, text: string) => html.split(text).length - 1
 const meta = (html: string, attribute: 'name' | 'property', key: string) => html.match(new RegExp(`<meta ${attribute}="${key}" content="([^"]*)"`))?.[1]
 const mainOf = (html: string) => html.match(/<main id="main"[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? ''
+/** What Managed hosting includes, in the words Home and Services both use. */
+const MANAGED_INCLUDES = ['free Marque subdomain', 'a domain you own', 'Automatic SSL and a global CDN', 'Automatic deploys and daily backups', 'Uptime monitoring and security updates', 'Search Console', 'Up to an hour of edits a month']
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const DISCLOSURE = 'Marque is a concept brand. This is a demonstration site: nothing you enter here is sent, and no payments are taken.'
-const ABOUT_LINK = /<a [^>]*href="\/marque\/terms\/#concept"[^>]*data-concept[^>]*>About this site<\/a>/
 const JS_MARK = `<script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>`
 const footerOf = (html: string) => html.match(/<footer[\s>][\s\S]*?<\/footer>/)?.[0] ?? ''
 
@@ -80,12 +88,21 @@ function webpSize(file: URL): [number, number] {
   return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]
 }
 
-test('the pages on disk are exactly the pages the site lists', () => {
-  const app = new URL('app/', root)
-  const folders = readdirSync(app, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && existsSync(new URL(`${e.name}/index.html`, app)))
-    .map((e) => `${e.name}/`)
-  assert.deepEqual(folders.sort(), PAGES.filter((p) => p.path).map((p) => p.path).sort())
+test('the pages on disk are exactly the pages the site lists, plus the old /work/ address that redirects', () => {
+  const folders = readdirSync(new URL('app/', root), { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('/index.html'))
+    .map((file) => file.slice(0, -'index.html'.length))
+  assert.deepEqual(folders.sort(), [...PAGES.filter((p) => p.path).map((p) => p.path), 'work/'].sort())
+})
+
+test('the old Work address sends visitors on to Works, and each old case-study link to its own page', () => {
+  const old = read('app/work/index.html')
+  assert.match(old, /<meta http-equiv="refresh" content="0; url=\/marque\/works\/" \/>/, 'a refresh to Works')
+  assert.ok(old.includes('<link rel="canonical" href="%VITE_SITE_URL%works/" />'), 'canonical to Works')
+  assert.equal(meta(old, 'name', 'robots'), 'noindex')
+  assert.match(old, /<a href="\/marque\/works\/">Works<\/a>/, 'a plain link for anyone the refresh misses')
+  assert.match(old, /\^\(usual\|bayline\|enamel\)\$/, '#usual and the others go to their own pages')
+  assert.ok(!old.includes('<!-- include:'), 'no header or footer: it only redirects')
 })
 
 test('every page has its own title, description and canonical, and stays out of search', () => {
@@ -121,7 +138,7 @@ test('every page has its own title, description and canonical, and stays out of 
 test('every page takes the shared header and footer, and exactly its own link is marked current', () => {
   for (const page of PAGES) {
     const where = HEADER_PAGES.includes(page.id) ? 'header' : 'footer'
-    assert.equal(count(source[page.id], `<!-- include:${where} current="${page.id}" -->`), 1, `${page.id}: ${where} marker names the page`)
+    assert.equal(count(source[page.id], `<!-- include:${where} current="${currentOf(page.id)}" -->`), 1, `${page.id}: ${where} marker names the page`)
     assert.equal(count(source[page.id], '<!-- include:header'), 1, `${page.id}: header marker`)
     assert.equal(count(source[page.id], '<!-- include:footer'), 1, `${page.id}: footer marker`)
     assert.doesNotMatch(source[page.id], /<header[\s>]|<footer[\s>]/, `${page.id}: no copied header or footer`)
@@ -129,16 +146,14 @@ test('every page takes the shared header and footer, and exactly its own link is
     assert.doesNotMatch(html, /<!-- include:/, `${page.id}: markers replaced`)
     // The header links its pages twice, from the bar and the phone menu, and marks both.
     const current = [...html.matchAll(/<a [^>]*data-page="([a-z-]+)" aria-current="page"/g)].map((m) => m[1])
-    assert.deepEqual(current, Array(HEADER_PAGES.includes(page.id) ? 2 : 1).fill(page.id), `${page.id}: its own links, and only those, are current`)
+    assert.deepEqual(current, Array(HEADER_PAGES.includes(page.id) ? 2 : 1).fill(currentOf(page.id)), `${page.id}: its own links, and only those, are current`)
     assert.equal(count(html, '<main id="main"'), 1, `${page.id}: main`)
     assert.equal(count(html, '<h1'), 1, `${page.id}: one h1`)
-    assert.match(html, ABOUT_LINK, `${page.id}: About this site link`)
-    assert.ok(html.includes('id="concept-dialog"'), `${page.id}: About this site dialog`)
   }
 })
 
-test('the header reaches the main pages; the footer has Company, Help and Legal, the newsletter, area and hours', () => {
-  for (const id of HEADER_PAGES) {
+test('the header reaches the main pages; the footer has Company, Help and Legal, the newsletter, replies and meetings', () => {
+  for (const id of NAV_PAGES) {
     const page = PAGES.find((p) => p.id === id)!
     assert.match(partials.header, new RegExp(`href="/marque/${page.path}"[^>]*data-page="${id}"`), `header: ${id}`)
   }
@@ -146,7 +161,7 @@ test('the header reaches the main pages; the footer has Company, Help and Legal,
   const column = (heading: string) => partials.footer.match(new RegExp(`>${heading}</h2>([\\s\\S]*?)</nav>`))?.[1] ?? ''
   assert.deepEqual([...column('Company').matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]+)</g)].map((m) => [m[1], m[2]]), [
     ['/marque/studio/', 'Studio'],
-    ['/marque/work/', 'Work'],
+    ['/marque/works/', 'Works'],
     ['/marque/start/#contact', 'Contact'],
   ])
   assert.deepEqual([...column('Help').matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]+)</g)].map((m) => [m[1], m[2]]), [
@@ -159,8 +174,8 @@ test('the header reaches the main pages; the footer has Company, Help and Legal,
     ['/marque/cookies/', 'Cookie Policy'],
   ])
   assert.match(partials.footer, /<form [^>]*data-mock-form="newsletter"/, 'footer: newsletter')
-  assert.ok(partials.footer.includes('Mabolo, Cebu City'), 'footer: area')
-  assert.match(partials.footer, /Monday to Friday, 9:00 AM to 6:00 PM/, 'footer: studio hours')
+  assert.ok(partials.footer.includes('Within a day, any day'), 'footer: replies')
+  assert.ok(partials.footer.includes('On a call, in your time zone'), 'footer: meetings')
 })
 
 test('an include for a page the partials do not know fails the build', () => {
@@ -176,33 +191,35 @@ test('the product never names its author, and no link leaves for a portfolio, a 
   }
 })
 
-test('the footer has no disclosure line, only an About this site link in its legal row; the dialog and Terms say it', () => {
-  const footer = footerOf(partials.footer)
-  assert.ok(footer, 'footer element')
-  assert.ok(!footer.includes(DISCLOSURE) && !/is a concept brand/.test(footer), 'no disclosure line in the footer')
-  const legalRow = footer.match(/<div [^>]*data-legal-row[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? ''
+test('Marque is a real studio: no page, partial or script calls it a concept or the site a demonstration', () => {
+  for (const [file, text] of productSources()) {
+    assert.doesNotMatch(text, /concept|demonstration|About this site|data-concept/i, file)
+  }
+  assert.ok(!existsSync(new URL('app/shared/concept.ts', root)), 'the concept dialog script is gone')
+  const legalRow = footerOf(partials.footer).match(/<div [^>]*data-legal-row[^>]*>([\s\S]*?)<\/div>/)?.[1] ?? ''
   assert.ok(legalRow.includes('© 2026 Marque'), 'legal row: copyright')
-  assert.match(legalRow, ABOUT_LINK, 'legal row: About this site opens the dialog')
-  const dialog = partials.footer.match(/<dialog [\s\S]*?<\/dialog>/)?.[0] ?? ''
-  assert.ok(dialog.includes('id="concept-dialog"') && dialog.includes('>About this site</h2>') && dialog.includes(DISCLOSURE), 'the dialog states it')
-  assert.ok(mainOf(built.terms).includes(DISCLOSURE), 'Terms states it')
-  for (const page of PAGES) assert.ok(!source[page.id].includes('Is this a real business?'), `${page.id}: no "real business" FAQ`)
 })
 
-test('the concept note sits beside the main action on Home and on Start a project, and nowhere else', () => {
-  const note = /Marque is a concept brand[^<]*<a [^>]*data-concept[^>]*>About this site<\/a>/
-  for (const page of PAGES) assert.equal(note.test(mainOf(source[page.id])), page.id === 'home' || page.id === 'start', `${page.id}: concept note`)
+test('where nothing is sent yet, the page says so plainly', () => {
+  assert.match(mainOf(source.start), /Sending isn’t connected yet\./, 'the contact form')
+  assert.match(read('app/start/contact.ts'), /sending isn’t connected yet/, 'the contact form after a send')
+  assert.match(read('app/shared/forms.ts'), /Sign-up isn’t connected yet/, 'the newsletter')
+  assert.match(mainOf(source.account), /Emails aren’t sent yet, so your code shows here\./, 'the sign-in code')
+  assert.match(read('app/account/account.ts'), /Google sign-in isn’t connected yet/, 'Continue with Google')
+  for (const id of ['terms', 'privacy'] as const) assert.match(mainOf(source[id]), /What isn’t connected yet/, `${id}: what isn’t connected`)
 })
 
-test('there is no password field anywhere, only an email or mobile number and an on-screen code', () => {
+test('there is no password field anywhere, only an email address and an on-screen code', () => {
   for (const [file, text] of productSources()) assert.doesNotMatch(text, /type=\\?"password\\?"|type='password'/, file)
   const account = mainOf(source.account)
-  assert.ok(account.includes('data-account'), 'account feature')
-  assert.match(account, /<input [^>]*name="first-name"/, 'first name')
-  assert.match(account, /<input [^>]*name="contact"/, 'email or mobile number')
+  assert.ok(source.account.includes('<main id="main" data-account>'), 'account feature')
+  assert.match(account, /<input [^>]*name="first-name"/, 'first name, for a new account')
+  assert.match(account, /<input [^>]*name="contact" type="email" autocomplete="email"/, 'email address')
   assert.match(account, /<input [^>]*autocomplete="one-time-code"/, 'one-time code')
-  assert.ok(account.includes('data-demo-code'), 'the code is shown on screen')
+  assert.ok(account.includes('data-preview-code'), 'the code is shown on screen, as a preview')
   assert.ok(account.includes('data-briefs'), 'Your briefs')
+  assert.match(account, /<button class="button-provider" type="button" data-google disabled>/, 'Continue with Google, off until the script explains it')
+  assert.ok(account.includes('data-mode-switch'), 'Sign in and Create account are both reachable')
 })
 
 test('the builder and the contact form are on Start a project only, and the form starts without the builder', () => {
@@ -221,22 +238,31 @@ test('the builder and the contact form are on Start a project only, and the form
 test('Home markets the studio with its own work and prices and links on', () => {
   const home = mainOf(source.home)
   for (const [site, url] of Object.entries(LIVE_SITES)) {
-    assert.ok(home.includes(`href="/marque/work/#${site}"`), `${site}: links to its case study`)
+    assert.ok(home.includes(`href="/marque/works/${site}/"`), `${site}: links to its project page`)
     assert.ok(home.includes(`src="/work/${site}-cover-800.webp"`), `${site}: screenshot`)
     assert.ok(!home.includes(`href="${url}"`), `${site}: the live site is opened from the case study, not from Home`)
   }
   const launch = estimate(LAUNCH_SET)
   assert.ok(home.includes('href="/marque/start/?set=launch"'), 'the launch set opens in the builder')
-  assert.ok(home.includes(peso(launch.oneTime)) && home.includes(`${launch.weeks![0]} to ${launch.weeks![1]} weeks`), 'the launch set in real prices')
+  assert.ok(home.includes(dollars(launch.oneTime)) && home.includes(formatDays(launch.days)), 'the launch set in real prices and days')
+  assert.ok(home.includes(`<s class="price-was text-h3"><span class="sr-only">regular price </span>${dollars(launch.oneTime + launch.discount)}</s>`), 'its regular price struck through beside it')
+  assert.match(home, /Day 3, or money off/, 'the late-day credit')
+  assert.ok(home.includes(`${dollars(PRICE.managed)} a month`), 'what running the site costs after launch')
+  const hosting = home.match(/<h3[^>]*>What Managed hosting includes, for \$39 a month<\/h3>[\s\S]*?<\/ul>/)?.[0] ?? ''
+  for (const item of MANAGED_INCLUDES) assert.ok(hosting.includes(item), `Managed hosting: ${item}`)
   for (const service of SERVICES) {
     const row = home.match(new RegExp(`<a [^>]*href="/marque/services/#${service.id}"[\\s\\S]*?</a>`))?.[0]
     assert.ok(row, `${service.id}: teaser row links to Services`)
-    assert.ok(row.includes(`>${service.name}<`) && row.includes(peso(service.from)), `${service.id}: name and starting price`)
+    assert.ok(row.includes(`>${service.name}<`) && row.includes(dollars(service.from)), `${service.id}: name and starting price`)
+    assert.equal(row.includes('<s '), service.unit !== 'a month', `${service.id}: a first-project price only on one-time work`)
+    if (service.unit !== 'a month') assert.ok(row.includes(`${dollars(service.from)}</s> <span class="sr-only">first-project price </span>${dollars(firstProjectPrice(service.from))}`), `${service.id}: the regular price struck beside the first-project price`)
   }
   for (const n of ['01', '02', '03', '04', '05', '06']) assert.ok(home.includes(`>${n}</`), `section ${n} in the margin`)
   assert.ok(count(home, 'data-step') >= 4, 'how we work, step by step')
   assert.ok(home.includes('href="/marque/start/"'), 'a closing call to start a project')
-  assert.doesNotMatch(home, /\b\d[\d,]*\+? (?:happy |satisfied )?(?:clients|customers|brands|projects|reviews)\b|★|\bstars?\b|award|trusted by/i, 'no invented proof')
+  for (const id of ['home', 'works', ...WORK_PAGES] as const) {
+    assert.doesNotMatch(mainOf(source[id]), /\b\d[\d,]*\+? (?:happy |satisfied )?(?:clients|customers|brands|projects|reviews)\b|★|\bstars?\b|award|trusted by|testimonial|\d+\s?%(?! off)|increase|grew|growth|revenue|sales up|conversion/i, `${id}: no invented proof`)
+  }
 })
 
 test('the three work cards on Home are the same size at every width, so their screenshots and names line up', () => {
@@ -265,11 +291,6 @@ test('Home’s work cards swap to a legible phone crop below 48rem, all three th
   }
 })
 
-test('Work’s "Concept project" is plain text, not a button-shaped box', () => {
-  const labels = [...mainOf(source.work).matchAll(/<p class="([^"]*)">Concept project<\/p>/g)]
-  assert.equal(labels.length, 3)
-  for (const [, classes] of labels) assert.doesNotMatch(classes, /\bborder\b/, 'no box')
-})
 
 test('no example could be a real mobile number', () => {
   for (const [id, html] of [...PAGES.map((p) => [p.id, source[p.id]]), ['features', read('app/start/contact.ts') + read('app/account/account.ts')]]) assert.doesNotMatch(html, /0917/, `${id}: no live mobile prefix in an example`)
@@ -286,17 +307,46 @@ test('builder rows put the price under the name on phones, every row alike', () 
   for (const classes of rows) assert.ok(classes.startsWith('flex flex-col items-start') && classes.includes('sm:flex-row'), classes)
 })
 
-test('Work shows the three concept projects, what the studio made, and opens each live site', () => {
-  const work = mainOf(source.work)
-  for (const [site, url] of Object.entries(LIVE_SITES)) {
-    const section = work.match(new RegExp(`<article [^>]*id="${site}"[\\s\\S]*?</article>`))?.[0]
-    assert.ok(section, `${site}: case study`)
-    assert.ok(section.includes('Concept project'), `${site}: labelled concept work`)
-    assert.ok(section.includes(`href="${url}"`), `${site}: link to the live site`)
-    assert.ok(section.includes(`src="/work/${site}-desktop-800.webp"`) && section.includes(`src="/work/${site}-phone-390.webp"`), `${site}: desktop and phone screenshots`)
-    assert.match(section, /<dl[\s>]/, `${site}: what we made`)
+test('Works lists every project newest first, each with its thumbnail, mark, type, services and launch date', () => {
+  const works = mainOf(source.works)
+  const cards = [...works.matchAll(/<li data-work data-name="([^"]+)" data-launched="([^"]+)">([\s\S]*?)<\/li>/g)]
+  assert.deepEqual(cards.map((m) => m[1]), sortWorks(WORKS, 'newest').map((w) => w.name), 'the page’s own order is newest first')
+  for (const [, name, launched, card] of cards) {
+    const work = WORKS.find((w) => w.name === name)!
+    assert.equal(launched, work.launched, `${name}: launch date`)
+    assert.ok(card.includes(`href="/marque/works/${work.id}/"`), `${name}: opens its page`)
+    assert.ok(card.includes(`src="/work/${work.id}-cover-800.webp"`), `${name}: its thumbnail`)
+    assert.ok(card.includes(`class="fill-${work.id}"`), `${name}: its mark`)
+    assert.ok(card.includes(`>${work.type}<`), `${name}: what kind of business`)
+    assert.match(card, new RegExp(`<time datetime="${work.launched}">\\d+ November 2026</time>`), `${name}: a readable date`)
+    assert.match(card, />What we made</, `${name}: the services`)
   }
-  assert.doesNotMatch(work, /\d+\s?%|percent|increase|grew|growth|revenue|sales up|conversion/i, 'no invented results')
+  assert.match(works, /<fieldset data-works-sort hidden>\s*<legend[^>]*>Sort<\/legend>/, 'a labelled sort control, hidden until the script runs')
+  for (const value of ['newest', 'oldest', 'name']) assert.match(works, new RegExp(`<input type="radio" name="sort" value="${value}"`), `sort: ${value}`)
+  assert.ok(works.includes('aria-live="polite" data-works-status'), 'it announces the new order')
+})
+
+test('each project has its own page, led by its own colour and mark, with screens, the brief, the live site and the next project', () => {
+  const bands = { usual: 'bg-usual text-usual-ink', bayline: 'bg-bayline text-bayline-ink', enamel: 'bg-enamel-ink text-enamel' }
+  const themes = new Set<string>()
+  for (const site of WORK_PAGES) {
+    const page = mainOf(source[site])
+    const work = WORKS.find((w) => w.id === site)!
+    themes.add(meta(source[site], 'name', 'theme-color') ?? '')
+    assert.match(page, new RegExp(`^\\s*<section class="[^"]*${bands[site]}"`), `${site}: opens on its own colour`)
+    assert.ok(page.includes(`<h1 class="mt-6" id="work-title">${work.name}</h1>`), `${site}: its name`)
+    assert.match(page, new RegExp(`class="[^"]*\\b(?:fill|stroke)-${site}(?:"| )`), `${site}: its mark, in its colour (inverted where the hero is that colour)`)
+    assert.ok(page.includes(`<time datetime="${work.launched}">`), `${site}: launch date`)
+    assert.ok(page.includes(`src="/work/${site}-desktop-800.webp"`) && page.includes(`src="/work/${site}-phone-390.webp"`), `${site}: desktop and phone screens`)
+    for (const heading of ['The brief', 'What we did', 'What we made']) assert.ok(page.includes(`>${heading}</h2>`), `${site}: ${heading}`)
+    assert.match(page, /<dt[^>]*>Timeline<\/dt>/, `${site}: services and timeline`)
+    assert.ok(page.includes(`href="${LIVE_SITES[site]}" target="_blank" rel="noopener">Open ${work.name}<span class="sr-only"> (opens in a new tab)</span>`), `${site}: opens the live site in a new tab`)
+    assert.ok(page.includes('A Marque studio project.'), `${site}: honest about whose project it is`)
+    const { previous, next } = neighbours(site)
+    assert.ok(page.includes(`href="/marque/works/${previous.id}/" rel="prev"`) && page.includes(`href="/marque/works/${next.id}/" rel="next"`), `${site}: previous and next`)
+    assert.match(page, /<nav [^>]*aria-label="Breadcrumb"[\s\S]*?href="\/marque\/works\/"/, `${site}: back to Works`)
+  }
+  assert.equal(themes.size, 3, 'each page tints the browser in its own colour')
 })
 
 test('Services lists every service with its starting price and time, and links each one into the builder', () => {
@@ -305,28 +355,82 @@ test('Services lists every service with its starting price and time, and links e
     const row = services.match(new RegExp(`<section [^>]*id="${service.id}"[\\s\\S]*?</section>`))?.[0]
     assert.ok(row, `${service.id}: its own section`)
     assert.ok(row.includes(`>${service.name}</h2>`), `${service.id}: name`)
-    assert.ok(row.includes(peso(service.from)) && row.includes(service.unit) && row.includes(service.time), `${service.id}: price, unit and time`)
+    assert.ok(row.includes(dollars(service.from)) && row.includes(service.unit) && row.includes(service.time), `${service.id}: price, unit and time`)
+    if (service.unit !== 'a month') {
+      assert.ok(row.includes(`${dollars(service.from)}</s> <span class="sr-only">first-project price </span>${dollars(firstProjectPrice(service.from))}`), `${service.id}: first-project price beside the regular one`)
+      assert.ok(row.includes('Ready by day 3, or $5 off for each day late'), `${service.id}: the late-day credit beside the timeline`)
+    }
     assert.ok(row.includes(`href="/marque/start/?add=${service.id}"`), `${service.id}: into the builder`)
   }
   const faq = services.match(/id="faq"[\s\S]*$/)?.[0] ?? ''
   assert.ok(count(faq, '<summary') >= 5, 'FAQ')
+  const website = services.match(/<section [^>]*id="website"[\s\S]*?<\/section>/)![0]
+  const managed = website.match(/<h3[^>]*>Managed, \$39 a month<\/h3>[\s\S]*?<\/ul>/)?.[0] ?? ''
+  for (const item of [...MANAGED_INCLUDES, 'Cancel any time and take the code with you']) assert.ok(managed.includes(item), `Managed: ${item}`)
+  const handed = website.match(/<h3[^>]*>Handed over, no monthly fee<\/h3>[\s\S]*?<\/ul>/)?.[0] ?? ''
+  for (const item of ['repository transferred to you', 'guide to deploying it', 'yours to set up']) assert.ok(handed.includes(item), `Handed over: ${item}`)
+  assert.ok(website.includes('Domains: use the free subdomain or bring one you own'), 'domains are not included')
+  for (const question of ['Do you sell domains?', 'Can I leave Managed hosting?', 'What happens on handover?']) assert.ok(faq.includes(`<summary>${question}</summary>`), `FAQ: ${question}`)
+})
+
+test('no page promises weeks: the one-time work is ready in days', () => {
+  for (const id of ['home', 'services', 'studio', 'start'] as const) {
+    const text = mainOf(source[id]).replace(/days, not weeks/g, '').replace(/three times a week/g, '')
+    assert.doesNotMatch(text, /\bweeks?\b/i, id)
+  }
+})
+
+test('the builder’s website row offers managed or handed over, managed first, with a visible legend', () => {
+  const row = mainOf(source.start).match(/<li class="service-row[^"]*" data-service="website">[\s\S]*?<\/li>/)![0]
+  const group = row.match(/<fieldset[^>]*>[\s\S]*?<\/fieldset>/)?.[0] ?? ''
+  assert.match(group, /<legend class="text-sm font-\[560\]">After launch<\/legend>/)
+  assert.match(group, /<div class="segments mt-2">/, 'the same segments as the other options')
+  assert.match(group, /<input type="radio" name="after-launch" value="managed" checked \/><span>Managed<\/span>/)
+  assert.match(group, /<input type="radio" name="after-launch" value="handover" \/><span>Handed over<\/span>/)
+  assert.ok(group.includes(`Managed is ${dollars(PRICE.managed)} a month`), 'the monthly fee, in words')
+  for (const words of ['free Marque subdomain', 'a domain you own', 'Cancel any time and take the code', 'a deploy guide', 'Domains aren’t included']) assert.ok(group.includes(words), `After launch: ${words}`)
+  assert.doesNotMatch(row.replace(group, ''), /\bSSL\b|hosting|domain/i, 'hosting is described only with the choice')
+  assert.ok(source.start.includes('data-line="managed"'), 'a sheet row for the managed line')
+})
+
+test('no page sells, registers or renews a domain, and hosting comes only with Managed', () => {
+  const texts: [string, string][] = [...PAGES.map((page): [string, string] => [page.id, mainOf(source[page.id])]), ['README', read('README.md')]]
+  for (const [id, text] of texts) {
+    assert.doesNotMatch(text, /domain renewal|domain registration|renew(?:s|ed|ing)? (?:the |your |a )?domains?|regist(?:er|ers|ered|ering) (?:or connect )?(?:the |your |a )?domains?|domains? (?:is |are )?(?:registered|included)/i, `${id}: no domain sales`)
+    assert.doesNotMatch(text, /every website (?:launches|comes) with|launch (?:is )?included|launch comes with/i, `${id}: no launch package with every website`)
+  }
+  // Each block that names a hosting feature is about Managed, or says the owner sets it up.
+  for (const id of ['home', 'services', 'studio', 'start', 'terms'] as const) {
+    const blocks = mainOf(source[id]).split(/(?=<(?:h2|h3|summary|legend)\b)/).filter((block) => /\bSSL\b|global CDN|automatic deploys|daily backups|uptime monitoring/i.test(block))
+    for (const block of blocks) assert.match(block, /Managed|yours to set up/, `${id}: ${block.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80)}`)
+  }
+  assert.doesNotMatch(MANAGED_LABEL, /renew|regist/i, 'the estimate line')
+})
+
+test('Home’s service rows fill dark on hover with room on both sides, so no text touches the edge', () => {
+  const rows = [...mainOf(source.home).matchAll(/<a class="(group grid [^"]*)" href="\/marque\/services\/#/g)].map((m) => m[1].split(/\s+/))
+  assert.equal(rows.length, SERVICES.length)
+  for (const classes of rows) {
+    assert.ok(classes.includes('hover:bg-ink'), 'fills on hover')
+    assert.ok(classes.includes('px-3') && classes.includes('md:px-5'), classes.join(' '))
+  }
 })
 
 test('Studio is the About page: who the studio is, how it works, and where', () => {
   const studio = mainOf(source.studio)
   assert.ok(count(studio, 'data-step') >= 4, 'the process, step by step')
-  assert.ok(studio.includes('Mabolo') && studio.includes('Monday to Friday'), 'area and hours')
+  assert.ok(studio.includes('Within a day, any day you write') && studio.includes('on a call'), 'replies and meetings')
 })
 
-test('the legal pages read like a Philippine studio’s and list exactly the keys the code stores', () => {
+test('the legal pages read like those of a studio with clients anywhere, and list exactly the keys the code stores', () => {
   const privacy = mainOf(source.privacy)
-  assert.ok(privacy.includes('Data Privacy Act of 2012') && privacy.includes('Republic Act No. 10173'), 'Data Privacy Act')
-  assert.ok(privacy.includes('National Privacy Commission'), 'NPC')
+  assert.ok(privacy.includes('the data protection law where you live') && privacy.includes('GDPR'), 'the law where the visitor lives')
+  for (const id of ['terms', 'privacy'] as const) assert.doesNotMatch(mainOf(source[id]), /Philippine|Republic Act|National Privacy Commission/, `${id}: no single country's law`)
   assert.match(mainOf(source.cookies), /no cookies/i, 'no cookies')
-  for (const id of ['terms', 'privacy', 'cookies', 'accessibility'] as const) {
-    assert.match(mainOf(source[id]), /demonstration site/, `${id}: demonstration`)
-    assert.ok(mainOf(source[id]).includes('Last updated'), `${id}: dated`)
-  }
+  for (const id of ['terms', 'privacy', 'cookies', 'accessibility'] as const) assert.ok(mainOf(source[id]).includes('Last updated'), `${id}: dated`)
+  const terms = mainOf(source.terms)
+  assert.ok(terms.includes('If we deliver a service after day 3, we take $5 off the final invoice for every day late, up to the price of that service.'), 'Terms: the late-day credit')
+  assert.ok(terms.includes('New clients get 15% off their first one-time project') && terms.includes('One first-project discount per client.'), 'Terms: the first-project discount')
   // The keys as the code defines them (export const …_KEY = 'marque.…'), not a copy kept here.
   const code = productSources().filter(([file]) => /\.(?:ts|css)$/.test(file)).map(([, text]) => text).join('\n')
   const keys = [...code.matchAll(/_KEY = '(marque\.[a-z]+)'/g)].map(([, key]) => key).sort()
@@ -385,13 +489,12 @@ test('the 404 takes the shared header and footer and points to every main page',
   assert.equal(count(notFound, '<!-- include:header -->'), 1, 'header marker, no current page')
   assert.equal(count(notFound, '<!-- include:footer -->'), 1, 'footer marker')
   assert.doesNotMatch(html, /data-page="[a-z-]+" aria-current="page"/, 'no link is current')
-  assert.ok(ABOUT_LINK.test(html) && html.includes('id="concept-dialog"'), 'About this site link and dialog')
-  assert.ok(notFound.includes('<script type="module" src="/main.ts"></script>'), 'script, so the dialog opens')
+  assert.ok(notFound.includes('<script type="module" src="/main.ts"></script>'), 'script, so the menu opens')
   assert.equal(meta(notFound, 'name', 'robots'), 'noindex')
   assert.ok(!notFound.includes('rel="canonical"'), 'no canonical on a 404')
   assert.equal(meta(notFound, 'property', 'og:title'), notFound.match(/<title>([^<]+)<\/title>/)?.[1])
   assert.equal(meta(notFound, 'property', 'og:image'), '%VITE_SITE_URL%og.png')
-  for (const id of ['home', 'work', 'services', 'studio', 'start']) {
+  for (const id of ['home', 'works', 'services', 'studio', 'start']) {
     const page = PAGES.find((p) => p.id === id)!
     assert.ok(html.includes(`href="${BASE}${page.path}"`), `links to ${id}`)
   }
@@ -431,7 +534,7 @@ test('one inline script marks the signed-in header, after every name it fills, w
   assert.ok(script.includes("setAttribute('data-signed-in'"), 'marks the page')
   assert.ok(script.includes("querySelectorAll('[data-account-name]')"), 'fills every account link')
   assert.ok(script.includes(EMAIL.source), 'the email pattern parseContact uses')
-  assert.ok(script.includes(MOBILE.source), 'the mobile pattern parseContact uses')
+  assert.ok(!/mobile|\\d\{9\}/.test(script), 'email only, like parseContact')
   assert.match(script, /length <= 40/, 'the first-name limit validateFirstName uses')
 })
 
@@ -453,7 +556,7 @@ test('the phone menu is a modal dialog that drops from the header: a labelled cl
   assert.equal(close[1], 'Close', 'with the word on it')
   const rows = [...dialog.matchAll(/<li class="([^"]*)">\s*<a [^>]*href="([^"]+)"[^>]*>\s*<span class="[^"]*margin-no[^"]*" aria-hidden="true">(\d\d)<\/span>/g)]
   assert.deepEqual(rows.map((m) => [m[3], m[2]]), [
-    ['01', '/marque/work/'],
+    ['01', '/marque/works/'],
     ['02', '/marque/services/'],
     ['03', '/marque/studio/'],
     ['04', '/marque/account/'],
@@ -463,7 +566,7 @@ test('the phone menu is a modal dialog that drops from the header: a labelled cl
   // The bar's links stay the desktop navigation, and the no-JavaScript fallback.
   const desktop = partials.header.match(/<ul [^>]*data-menu[\s>][\s\S]*?<\/ul>/)?.[0] ?? ''
   assert.match(desktop, /max-lg:hidden/, 'with JavaScript, phones use the dialog instead')
-  for (const page of ['work', 'services', 'studio', 'account']) assert.ok(desktop.includes(`data-page="${page}"`), `bar: ${page}`)
+  for (const page of ['works', 'services', 'studio', 'account']) assert.ok(desktop.includes(`data-page="${page}"`), `bar: ${page}`)
   assert.match(read('app/styles/main.css'), /html:has\(#site-menu:modal\)\s*\{\s*overflow: hidden/, 'the page behind does not scroll while the menu is open')
 })
 
@@ -472,13 +575,13 @@ test('the sign-in speaks in the studio’s own words, not the lines the other si
   for (const shared of ['Use a different email or number', 'Enter your code', 'Demo code', 'There’s no password: we show you a one-time code', 'A mobile number starting with 09, or an email address', 'Get a code', 'One-time code', 'Hello,', 'this demonstration shows it here instead']) {
     assert.ok(!account.includes(shared), `no "${shared}"`)
   }
-  for (const own of ['Sign in with two lines and a code.', 'Name on the file', 'Show my code', 'Copy these four digits.', 'Four-digit code', 'Open my briefs', 'Change name or contact', 'Filed under']) {
+  for (const own of ['Sign in to Marque', 'Create your Marque account', 'Continue with Google', 'Continue with email', 'Your sign-in code', 'Four-digit code', 'Change email', 'Filed under']) {
     assert.ok(account.includes(own), `says "${own}"`)
   }
   assert.match(mainOf(source.account), /<p class="field-error[^"]*" id="briefs-error" tabindex="-1" hidden data-briefs-error>/, 'a visible place to say a brief could not be removed')
 })
 
-test('the ₱ comes from the latin-ext font file, which every page that sets a price preloads', () => {
+test('prices are in dollars, which the latin font file covers, so no page preloads the latin-ext file', () => {
   const fonts = read('app/styles/fonts.css')
   const faces = [...fonts.matchAll(/@font-face\s*\{([\s\S]*?)\}/g)].map((m) => m[1]).filter((face) => face.includes("'Bricolage Grotesque'"))
   const covers = (face: string, code: number) =>
@@ -486,17 +589,13 @@ test('the ₱ comes from the latin-ext font file, which every page that sets a p
       const [from, to] = range.trim().replace('U+', '').split('-').map((hex) => parseInt(hex, 16))
       return code >= from && code <= (to ?? from)
     })
-  const peso = faces.filter((face) => covers(face, 0x20b1))
-  assert.equal(peso.length, 1, 'one face carries U+20B1')
-  const file = peso[0].match(/url\('\.\.\/\.\.\/(node_modules\/[^']+\.woff2)'\)/)?.[1]
-  assert.ok(file && existsSync(new URL(file, root)), 'its file exists')
-  const preload = `<link rel="preload" href="/${file}" as="font" type="font/woff2" crossorigin />`
-  // Your briefs prints prices from its script as soon as a signed-in visitor lands, so it counts as a page with prices.
-  for (const page of PAGES) {
-    const prices = source[page.id].includes('₱') || page.id === 'account'
-    assert.equal(source[page.id].includes(preload), prices, `${page.id}: ${prices ? 'preloads' : 'does not preload'} the ₱ file`)
+  const latin = faces.filter((face) => covers(face, 0x24))
+  assert.equal(latin.length, 1, 'one face carries $')
+  assert.ok(!latin[0].includes('latin-ext'), 'and it is the latin file')
+  for (const [id, html] of [...PAGES.map((p) => [p.id, source[p.id]]), ['404', notFound]]) {
+    assert.ok(!html.includes('\u20b1'), `${id}: no peso sign`)
+    assert.ok(!html.includes('latin-ext-wght-normal.woff2" as="font"'), `${id}: no latin-ext preload`)
   }
-  assert.ok(!notFound.includes(preload), '404: no prices')
 })
 
 const FORMS = [
@@ -537,15 +636,6 @@ test('the builder fills its sheet rows by service id, never by what a label star
   assert.doesNotMatch(read('app/start/builder.ts'), /startsWith/)
 })
 
-test('without JavaScript, About this site is a link to the Terms section that says what the site is', () => {
-  const triggers = [...PAGES.map((p) => source[p.id]), notFound, partials.header, partials.footer].flatMap((html) => [...html.matchAll(/<[a-z]+ [^>]*data-concept[\s>][^>]*>/g)].map((m) => m[0]))
-  assert.ok(triggers.length >= 3, 'the footer link and the two notes')
-  for (const tag of triggers) assert.match(tag, /^<a [^>]*href="\/marque\/terms\/#concept"/, tag)
-  const section = mainOf(built.terms).match(/<h2 id="concept"[^>]*>[^<]*<\/h2>\s*<p>([^<]*)<\/p>/)
-  assert.ok(section, 'Terms has the section the link points at')
-  assert.equal(section[1], DISCLOSURE, 'and it opens with the concept text')
-})
-
 test('the partials and the 404 link with %BASE_URL%, never a hard-coded base, and the build fills it in', () => {
   for (const [file, text] of [['app/components/header.html', raw.header], ['app/components/footer.html', raw.footer], ['app/404.html', notFound]]) {
     assert.ok(!text.includes(BASE), `${file}: no hard-coded ${BASE}`)
@@ -554,7 +644,7 @@ test('the partials and the 404 link with %BASE_URL%, never a hard-coded base, an
     for (const href of links) assert.match(href, /^(?:%BASE_URL%|#|https:\/\/)/, `${file}: ${href}`)
   }
   const page = includePartials(notFound, raw, BASE)
-  assert.ok(page.includes(`href="${BASE}work/"`) && page.includes(`href="${BASE}terms/#concept"`), 'filled in the page and its partials')
+  assert.ok(page.includes(`href="${BASE}works/"`) && page.includes(`href="${BASE}terms/"`), 'filled in the page and its partials')
   assert.ok(!page.includes('%BASE_URL%'))
   assert.throws(() => includePartials(notFound, raw, 'marque'), /base/)
 })
@@ -571,4 +661,28 @@ test('the build checks VITE_SITE_URL first and refuses to finish with a placehol
   assert.match(config, /leftoverPlaceholders\(html\)/, 'checks every built page')
   assert.match(config, /base: BASE/, 'one base for Vite and the partials')
   assert.match(read('package.json'), /"build": "tsc --noEmit && tsc --noEmit -p tsconfig\.test\.json && vite build"/, 'the build type-checks the tests and the config too')
+})
+
+test('Continue with Google carries Google’s mark in its own four colours, from the theme, never hex', () => {
+  const button = mainOf(source.account).match(/<button class="button-provider"[\s\S]*?<\/button>/)?.[0] ?? ''
+  for (const colour of ['blue', 'green', 'yellow', 'red']) {
+    assert.ok(button.includes(`class="fill-google-${colour}"`), `the ${colour} part of the G`)
+    assert.match(read('app/styles/main.css'), new RegExp(`--color-google-${colour}: oklch\\(`), `${colour} is an oklch token`)
+  }
+  assert.match(button, /<svg [^>]*aria-hidden="true"/, 'the mark is decoration; the words name the button')
+})
+
+test('the builder offers the first-project discount, ticked from the start, with its own line in the estimate', () => {
+  const start = mainOf(source.start)
+  assert.match(start, /<input class="check[^"]*" type="checkbox" id="first-project" checked data-first-project aria-describedby="first-project-desc" \/>/)
+  assert.ok(start.includes('<label class="cursor-pointer font-[560]" for="first-project">My first project with Marque</label>'))
+  assert.ok(start.includes('data-line="discount" data-off="Not applied"'), 'a discount line in the sheet')
+  assert.ok(start.includes(`data-late-note>${LATE_TEXT}</p>`), 'the late-day credit beside the timeline')
+})
+
+test('BACKEND.md plans what the front end is waiting for, and the launch checklist takes noindex off', () => {
+  const plan = read('BACKEND.md')
+  for (const topic of ['Google', 'one-time code', 'brief', 'contact', 'verified email', 'first-project', 'late-day credit', 'subdomain', 'custom domain', 'export', 'noindex', 'payments']) {
+    assert.match(plan, new RegExp(topic, 'i'), `BACKEND.md covers ${topic}`)
+  }
 })

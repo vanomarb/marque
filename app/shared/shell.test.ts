@@ -4,7 +4,7 @@ import { closeAll, loadPage } from '../../tests/harness.ts'
 
 after(closeAll)
 
-function page(file = 'work/index.html', path = 'work/', options: Parameters<typeof loadPage>[2] = {}) {
+function page(file = 'works/index.html', path = 'works/', options: Parameters<typeof loadPage>[2] = {}) {
   const p = loadPage(file, path, options)
   assert.deepEqual(p.boot(), [], 'starts without errors')
   const button = p.$<HTMLButtonElement>('[data-menu-button]')
@@ -41,13 +41,13 @@ test('the menu lists the pages as numbered rows, and marks the one you are on', 
   assert.deepEqual(
     rows.map((row) => [row.querySelector('.margin-no')!.textContent, row.querySelector('.menu-name .link-quiet')!.textContent, row.getAttribute('href')]),
     [
-      ['01', 'Work', '/marque/work/'],
+      ['01', 'Works', '/marque/works/'],
       ['02', 'Services', '/marque/services/'],
       ['03', 'Studio', '/marque/studio/'],
       ['04', 'Sign in', '/marque/account/'],
     ],
   )
-  assert.equal(rows[0].getAttribute('aria-current'), 'page', 'Work is current on the Work page')
+  assert.equal(rows[0].getAttribute('aria-current'), 'page', 'Works is current on the Works page')
   assert.ok(rows.slice(1).every((row) => !row.hasAttribute('aria-current')))
 })
 
@@ -78,40 +78,13 @@ test('growing past the desktop breakpoint closes the menu', () => {
   assert.equal(menu.open, false)
 })
 
-test('About this site: a link to the Terms section until the script makes it open the dialog', () => {
-  const before = loadPage('index.html', '')
-  const links = before.$$<HTMLAnchorElement>('[data-concept]')
-  assert.equal(links.length, 2, 'the hero note and the footer')
-  for (const link of links) assert.equal(link.getAttribute('href'), '/marque/terms/#concept', 'without the script, a link to the concept text')
-
-  assert.deepEqual(before.boot(), [])
-  const triggers = before.$$('[data-concept]')
-  assert.ok(triggers.every((t) => t.tagName === 'BUTTON' && t.getAttribute('type') === 'button' && t.getAttribute('aria-haspopup') === 'dialog'), 'with it, buttons')
-  assert.deepEqual(triggers.map((t) => t.textContent), ['About this site', 'About this site'])
-
-  const dialog = before.$<HTMLDialogElement>('#concept-dialog')
-  const footerTrigger = before.$('[data-legal-row] [data-concept]')
-  footerTrigger.focus()
-  footerTrigger.click()
-  assert.equal(dialog.open, true, 'opens')
-  assert.equal(before.document.activeElement, before.$('[data-concept-close]'), 'focus on Close')
-  before.$<HTMLButtonElement>('[data-concept-close]').click()
-  assert.equal(dialog.open, false)
-  assert.equal(before.document.activeElement, footerTrigger, 'focus back on the trigger')
-
-  footerTrigger.click()
-  before.key('Escape')
-  assert.equal(dialog.open, false, 'Escape closes it')
-  footerTrigger.click()
-  dialog.dispatchEvent(new before.window.MouseEvent('click', { bubbles: true }))
-  assert.equal(dialog.open, false, 'so does the backdrop')
-  assert.equal(before.document.activeElement, footerTrigger)
-})
-
 test('every page starts its features without an error', () => {
   const pages: [string, string][] = [
     ['index.html', ''],
-    ['work/index.html', 'work/'],
+    ['works/index.html', 'works/'],
+    ['works/usual/index.html', 'works/usual/'],
+    ['works/bayline/index.html', 'works/bayline/'],
+    ['works/enamel/index.html', 'works/enamel/'],
     ['services/index.html', 'services/'],
     ['studio/index.html', 'studio/'],
     ['start/index.html', 'start/'],

@@ -1,3 +1,5 @@
+import { accountLabel, type Session } from '../lib/account.ts'
+
 /** The message goes in the field's #<id>-error element (its [data-error-text] when it has an icon). */
 export function setFieldError(field: HTMLInputElement | HTMLTextAreaElement, message: string | null): void {
   const error = document.getElementById(`${field.id}-error`)
@@ -20,7 +22,7 @@ export function announce(region: HTMLElement | null, message: string): void {
   window.setTimeout(() => (region.textContent = message), 60)
 }
 
-export function showSignedIn(firstName: string | null): void {
-  document.documentElement.toggleAttribute('data-signed-in', !!firstName)
-  for (const label of document.querySelectorAll<HTMLElement>('[data-account-name]')) label.textContent = firstName ? firstName.trim().split(/\s+/)[0] : 'Sign in'
+export function showSignedIn(session: Session | null): void {
+  document.documentElement.toggleAttribute('data-signed-in', !!session)
+  for (const label of document.querySelectorAll<HTMLElement>('[data-account-name]')) label.textContent = session ? accountLabel(session) : 'Sign in'
 }

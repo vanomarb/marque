@@ -17,7 +17,7 @@ export function initContact(root: HTMLElement): void {
     const message = field('message')
     const errors: Record<string, string | undefined> = { ...validateContact({ name: name.value, business: business.value, message: message.value }) }
     const replyText = reply.value.trim()
-    errors.reply = !replyText ? 'Enter an email address or a mobile number.' : parseContact(replyText) ? undefined : 'Enter an email address or a Philippine mobile number starting with 09.'
+    errors.reply = !replyText ? 'Enter your email address.' : parseContact(replyText) ? undefined : 'Enter an email address, like name@example.com.'
 
     const order = [name, business, reply, message]
     for (const f of order) setFieldError(f, errors[f.name] ?? null)
@@ -28,10 +28,9 @@ export function initContact(root: HTMLElement): void {
       first.focus()
       return
     }
-    const firstName = name.value.trim().split(/\s+/)[0]
-    form.reset()
+    // Nothing was sent, so what they typed stays in the form rather than being lost.
     if (after) after.hidden = false
-    announce(status, `Thanks, ${firstName}. This is a demonstration site, so your brief wasn’t sent or saved. Use Save brief in the builder above to keep a copy under Your briefs.`)
+    announce(status, 'Your message is ready, but sending isn’t connected yet, so it hasn’t gone anywhere. It stays in the form on this page. To keep your priced brief, press Save brief above: it’s saved on this device under Your briefs.')
     status?.focus()
   })
 }

@@ -16,6 +16,19 @@
   --color-rule-strong: oklch(0.6 0 0);
   --color-on-ink-muted: oklch(0.78 0 0);
   --color-rule-on-ink: oklch(0.5 0 0);
+  /* The marks and pages of the three projects on Works, in their own colours. */
+  --color-usual: oklch(0.46 0.2 266);
+  --color-usual-ink: oklch(0.99 0.004 85);
+  --color-bayline: oklch(0.2 0.01 255);
+  --color-bayline-ink: oklch(0.985 0 0);
+  --color-enamel: oklch(0.34 0.042 176);
+  --color-enamel-ink: oklch(0.957 0.008 139.4);
+  --color-enamel-dot: oklch(0.802 0.103 56);
+  /* Google's mark on Continue with Google, in its own four colours. */
+  --color-google-blue: oklch(0.63 0.18 260);
+  --color-google-green: oklch(0.648 0.16 148.5);
+  --color-google-yellow: oklch(0.83 0.17 84);
+  --color-google-red: oklch(0.626 0.206 29.1);
 
   --font-*: initial;
   --font-sans: 'Bricolage Grotesque', 'Bricolage Fallback', ui-sans-serif, system-ui, sans-serif;
@@ -57,19 +70,11 @@
   --default-transition-timing-function: var(--ease-precise);
   --animate-*: initial;
   --animate-fade-in: fade-in 180ms var(--ease-precise);
-  --animate-rise: rise 220ms var(--ease-precise);
   --animate-drop: drop 200ms var(--ease-precise);
 
   @keyframes fade-in {
     from {
       opacity: 0;
-    }
-  }
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
     }
   }
 
@@ -409,6 +414,58 @@
       & .work-made {
         transition: opacity 200ms var(--ease-precise);
       }
+    }
+  }
+
+  /* The regular price beside a first-project price: struck and quieter, so the price you pay reads first. */
+  .price-was {
+    font-weight: 400;
+    color: var(--color-graphite);
+    text-decoration-line: line-through;
+    text-decoration-thickness: 1px;
+  }
+
+  .on-ink .price-was {
+    color: var(--color-on-ink-muted);
+  }
+
+  /* The first-project offer, in a fine box like a stamp; it takes the colour of the text around it. */
+  .offer {
+    display: inline-flex;
+    align-items: center;
+    padding: --spacing(0.5) --spacing(2);
+    border: 1px solid currentColor;
+    font-size: var(--text-sm);
+    font-weight: 560;
+    line-height: 1.35;
+  }
+
+  /* Continue with Google: a sheet-white button whose mark keeps Google's colours on every state. */
+  .button-provider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: --spacing(3);
+    width: 100%;
+    min-height: 48px;
+    padding: 0 --spacing(5);
+    border: 1px solid var(--color-ink);
+    background-color: var(--color-sheet);
+    color: var(--color-ink);
+    font-weight: 560;
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-shade);
+    }
+
+    &:disabled {
+      border-color: var(--color-rule-strong);
+      color: var(--color-graphite);
+      cursor: not-allowed;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: background-color var(--default-transition-duration) var(--ease-precise);
     }
   }
 
