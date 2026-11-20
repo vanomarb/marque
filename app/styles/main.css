@@ -91,6 +91,10 @@
   }
 }
 
+/* A phone, even when its browser asks for the desktop site: that mode lays the page out 980px wide, but the screen is
+   still phone-sized and the pointer still a finger. Used where a phone should keep the phone version of something. */
+@custom-variant phone (@media (pointer: coarse) and (max-device-width: 47.99rem));
+
 @utility wrap {
   width: min(100% - 2 * var(--spacing-gutter), var(--container-page));
   margin-inline: auto;
@@ -646,11 +650,14 @@
     }
   }
 
+  /* The rule is an inset outline, not a border, so it adds nothing to the size: shots in a row whose widths follow
+     their shapes then come out exactly the same height. */
   .shot {
     display: block;
     width: 100%;
     height: auto;
-    border: 1px solid var(--color-rule);
+    outline: 1px solid var(--color-rule);
+    outline-offset: -1px;
     background-color: var(--color-shade);
   }
 

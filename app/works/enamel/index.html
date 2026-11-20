@@ -37,7 +37,7 @@
             <p class="mt-4 max-w-[32rem] text-lead">Prices first. A family dental clinic that shows what a visit costs before you book, and explains the HMO paperwork before the first visit.</p>
           </div>
           <div class="col-span-4 grid self-center md:col-span-5 lg:col-span-3 lg:col-start-9" data-reveal-item><svg class="w-full max-w-[16rem] justify-self-center lg:justify-self-end" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path class="fill-none stroke-enamel" d="M8 26C8 16.5 11.6 9 16 9s8 7.5 8 17" stroke-width="1.2" stroke-linecap="round" /><circle class="fill-enamel-dot" cx="22.4" cy="15" r="2.2" /></svg></div>
-          <dl class="col-span-4 grid gap-x-[var(--gap)] gap-y-5 sm:grid-cols-2 md:col-span-12 lg:col-span-10 lg:col-start-3 lg:grid-cols-4" data-reveal-item><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Type</dt><dd class="mt-1">Family dental clinic</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">What we made</dt><dd class="mt-1">The name, brand identity and a website with a tooth chart</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Timeline</dt><dd class="mt-1">Identity on day 1, the site on days 2 and 3</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Launched</dt><dd class="mt-1"><time datetime="2026-11-20">20 November 2026</time></dd></div></dl>
+          <dl class="col-span-4 grid gap-x-[var(--gap)] gap-y-5 sm:grid-cols-2 md:col-span-12 lg:col-span-10 lg:col-start-3 lg:grid-cols-4" data-reveal-item><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Type</dt><dd class="mt-1">Family dental clinic</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">What we made</dt><dd class="mt-1">The name, brand identity and a website with a 3D tooth chart</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Timeline</dt><dd class="mt-1">Identity on day 1, the site on days 2 and 3</dd></div><div class="border-t border-enamel/30 pt-3"><dt class="text-sm font-[560]">Launched</dt><dd class="mt-1"><time datetime="2026-11-20">20 November 2026</time></dd></div></dl>
         </div>
       </section>
 
@@ -46,14 +46,20 @@
         <div class="grid-page gap-y-8 pt-6">
           <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true" data-reveal-item>01</p>
           <h2 class="col-span-4 text-h3 md:col-span-12 lg:col-span-10" id="screens-title" data-reveal-item>Every price before the first visit</h2>
-          <figure class="flex flex-col col-span-4 md:col-span-9 lg:col-span-8 lg:col-start-3" data-reveal-item>
-            <img class="shot" src="/work/enamel-desktop-800.webp" srcset="/work/enamel-desktop-800.webp 800w, /work/enamel-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 900px, (min-width: 64rem) 64vw, (min-width: 48rem) 72vw, 92vw" width="800" height="400" alt="Enamel’s treatments page on a desktop: a chart of teeth with the upper right first molar picked and its usual treatments listed" fetchpriority="high" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Tooth chart and prices, desktop</figcaption>
-          </figure>
-          <figure class="flex flex-col col-span-2 md:col-span-3 lg:col-span-2" data-reveal-item>
-            <img class="shot" src="/work/enamel-phone-390.webp" srcset="/work/enamel-phone-390.webp 390w, /work/enamel-phone-780.webp 780w" sizes="(min-width: 88rem) 210px, (min-width: 64rem) 15vw, (min-width: 48rem) 22vw, 45vw" width="390" height="780" alt="The tooth chart on a phone, one arch at a time, with a tooth picked" loading="lazy" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Tooth chart, phone</figcaption>
-          </figure>
+          <div class="col-span-4 grid grid-cols-2 gap-x-[var(--gap)] md:col-span-12 md:flex lg:col-span-10 lg:col-start-3 phone:grid">
+            <figure class="hidden flex-col md:flex md:basis-0 md:grow-4 phone:hidden" data-reveal-item>
+              <img class="shot" src="/work/enamel-desktop-800.webp" srcset="/work/enamel-desktop-800.webp 800w, /work/enamel-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 750px, (min-width: 64rem) 52vw, 62vw" width="800" height="400" alt="Enamel’s treatments page on a desktop: the lower left first molar lifted out of the 3D model’s gum to show its roots, beside its usual treatments and starting prices" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">3D tooth chart and prices, desktop</figcaption>
+            </figure>
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/enamel-phone-390.webp" srcset="/work/enamel-phone-390.webp 390w, /work/enamel-phone-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="Enamel’s 3D tooth model on a phone: the lower teeth seen from the front, with their roots showing through the gum" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">3D tooth chart, phone</figcaption>
+            </figure>
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/enamel-booking-390.webp" srcset="/work/enamel-booking-390.webp 390w, /work/enamel-booking-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="A cleaning booked with Enamel on a phone: the treatment, the dentist, the time and the patient, with a preview of the six-month reminder below" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Booking confirmed, phone</figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
@@ -71,7 +77,7 @@
           </div>
           <div class="col-span-4 md:col-span-12 lg:col-span-8 lg:col-start-3" data-reveal-item>
             <h2 class="text-h3">What we made</h2>
-            <dl class="mt-3 border-b border-rule"><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">Identity</dt><dd class="text-graphite">The name, the mark, the colour system and two typefaces</dd></div><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">Website</dt><dd class="text-graphite">Treatments and prices, new patients, the team, booking and account, plus the company and legal pages</dd></div><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">Tooth chart</dt><dd class="text-graphite">Pick a tooth to see its usual treatments and prices, then book a dentist and a time in five steps</dd></div></dl>
+            <dl class="mt-3 border-b border-rule"><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">Identity</dt><dd class="text-graphite">The name, the mark, the colour system and two typefaces</dd></div><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">Website</dt><dd class="text-graphite">Treatments and prices, new patients, the team, booking and account, plus the company and legal pages</dd></div><div class="grid gap-1 border-t border-rule py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4"><dt class="font-[560]">3D tooth chart</dt><dd class="text-graphite">Turn a 3D model of the teeth and pick one to see its usual treatments and prices, then book a dentist and a time in five steps</dd></div></dl>
             <div class="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4"><a class="button button--brand border-enamel bg-enamel text-enamel-ink hover:bg-enamel-ink hover:text-enamel" href="/enamel/" target="_blank" rel="noopener">Open Enamel<span class="sr-only"> (opens in a new tab)</span><i data-icon="arrow-up-right" data-weight="regular" class="size-4 flex-none"></i></a><p class="max-w-[34rem] text-sm text-graphite">A Marque studio project: we set the brief ourselves, so there’s no client to quote. Open it and try it.</p></div>
           </div>
         </div>

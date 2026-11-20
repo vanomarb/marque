@@ -46,14 +46,20 @@
         <div class="grid-page gap-y-8 pt-6">
           <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true" data-reveal-item>01</p>
           <h2 class="col-span-4 text-h3 md:col-span-12 lg:col-span-10" id="screens-title" data-reveal-item>The site</h2>
-          <figure class="flex flex-col col-span-4 md:col-span-9 lg:col-span-8 lg:col-start-3" data-reveal-item>
-            <img class="shot" src="/work/usual-desktop-800.webp" srcset="/work/usual-desktop-800.webp 800w, /work/usual-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 900px, (min-width: 64rem) 64vw, (min-width: 48rem) 72vw, 92vw" width="800" height="400" alt="Usual’s item sheet on a desktop: the Spanish latte’s photo beside its size, hot or iced and milk choices, with the quantity and the Add to bag button" fetchpriority="high" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Item sheet, desktop</figcaption>
-          </figure>
-          <figure class="flex flex-col col-span-2 md:col-span-3 lg:col-span-2" data-reveal-item>
-            <img class="shot" src="/work/usual-phone-390.webp" srcset="/work/usual-phone-390.webp 390w, /work/usual-phone-780.webp 780w" sizes="(min-width: 88rem) 210px, (min-width: 64rem) 15vw, (min-width: 48rem) 22vw, 45vw" width="390" height="780" alt="An order placed on a phone: ready at 9:00 AM at IT Park, with the first stamp on the card" loading="lazy" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Order ahead, phone</figcaption>
-          </figure>
+          <div class="col-span-4 grid grid-cols-2 gap-x-[var(--gap)] md:col-span-12 md:flex lg:col-span-10 lg:col-start-3 phone:grid">
+            <figure class="hidden flex-col md:flex md:basis-0 md:grow-4 phone:hidden" data-reveal-item>
+              <img class="shot" src="/work/usual-desktop-800.webp" srcset="/work/usual-desktop-800.webp 800w, /work/usual-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 750px, (min-width: 64rem) 52vw, 62vw" width="800" height="400" alt="Usual’s item sheet on a desktop: the Spanish latte’s photo beside its size, hot or iced and milk choices, with the quantity and the Add to bag button" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Item sheet, desktop</figcaption>
+            </figure>
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/usual-phone-390.webp" srcset="/work/usual-phone-390.webp 390w, /work/usual-phone-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="An order placed on a phone: ready at 9:00 AM at IT Park, with the first stamp on the card" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Order ahead, phone</figcaption>
+            </figure>
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/usual-menu-390.webp" srcset="/work/usual-menu-390.webp 390w, /work/usual-menu-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="Usual’s coffee list on a phone: each drink with its photo, a line about it and the price it starts from" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Coffee menu, phone</figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 

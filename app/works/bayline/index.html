@@ -51,14 +51,20 @@
         <div class="grid-page gap-y-8 pt-6">
           <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true" data-reveal-item>01</p>
           <h2 class="col-span-4 text-h3 md:col-span-12 lg:col-span-10" id="screens-title" data-reveal-item>Phone first, because that’s where the line is watched</h2>
-          <figure class="flex flex-col col-span-2 md:col-span-3 lg:col-span-2 lg:col-start-3" data-reveal-item>
-            <img class="shot" src="/work/bayline-phone-390.webp" srcset="/work/bayline-phone-390.webp 390w, /work/bayline-phone-780.webp 780w" sizes="(min-width: 88rem) 210px, (min-width: 64rem) 15vw, (min-width: 48rem) 22vw, 45vw" width="390" height="780" alt="Waiting in line on a phone: your wash, your place, second, about 8 minutes away, and the bays below with the cars in them" fetchpriority="high" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Your place in line, phone</figcaption>
-          </figure>
-          <figure class="flex flex-col col-span-4 md:col-span-9 lg:col-span-8" data-reveal-item>
-            <img class="shot" src="/work/bayline-desktop-800.webp" srcset="/work/bayline-desktop-800.webp 800w, /work/bayline-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 900px, (min-width: 64rem) 64vw, (min-width: 48rem) 72vw, 92vw" width="800" height="400" alt="Booking a time at Bayline on a desktop: today’s start times with the past and taken ones struck through, a plate number, GCash picked and a red Book 11:00 AM button" loading="lazy" />
-            <figcaption class="mt-auto pt-3 text-sm text-graphite">Join the line or book a time, desktop</figcaption>
-          </figure>
+          <div class="col-span-4 grid grid-cols-2 gap-x-[var(--gap)] md:col-span-12 md:flex lg:col-span-10 lg:col-start-3 phone:grid">
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/bayline-phone-390.webp" srcset="/work/bayline-phone-390.webp 390w, /work/bayline-phone-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="Waiting in line on a phone: your wash, your place, second, about 8 minutes away, and the bays below with the cars in them" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Your place in line, phone</figcaption>
+            </figure>
+            <figure class="flex flex-col md:basis-0 md:grow" data-reveal-item>
+              <img class="shot" src="/work/bayline-prices-390.webp" srcset="/work/bayline-prices-390.webp 390w, /work/bayline-prices-780.webp 780w" sizes="(min-width: 88rem) 190px, (min-width: 64rem) 13vw, (min-width: 48rem) 15vw, 45vw" width="390" height="780" alt="Bayline’s prices on a phone for a medium vehicle: the express wash and the engine wash ticked, with the total and the time beside a red Join the line button" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Prices for your vehicle, phone</figcaption>
+            </figure>
+            <figure class="hidden flex-col md:flex md:basis-0 md:grow-4 phone:hidden" data-reveal-item>
+              <img class="shot" src="/work/bayline-desktop-800.webp" srcset="/work/bayline-desktop-800.webp 800w, /work/bayline-desktop-1600.webp 1600w" sizes="(min-width: 88rem) 750px, (min-width: 64rem) 52vw, 62vw" width="800" height="400" alt="Booking a time at Bayline on a desktop: today’s start times with the past and taken ones struck through, a plate number, GCash picked and a red Book 11:00 AM button" loading="lazy" />
+              <figcaption class="pt-3 text-sm text-graphite">Join the line or book a time, desktop</figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 

@@ -361,7 +361,13 @@ test('each project has its own page, led by its own colour and mark, with screen
     assert.ok(page.includes(`<h1 class="mt-6" id="work-title">${work.name}</h1>`), `${site}: its name`)
     assert.match(page, new RegExp(`class="[^"]*\\b(?:fill|stroke)-${site}(?:"| )`), `${site}: its mark, in its colour (inverted where the hero is that colour)`)
     assert.ok(page.includes(`<time datetime="${work.launched}">`), `${site}: launch date`)
-    assert.ok(page.includes(`src="/work/${site}-desktop-800.webp"`) && page.includes(`src="/work/${site}-phone-390.webp"`), `${site}: desktop and phone screens`)
+    const shots = [...page.matchAll(/<figure class="([^"]*)"[^>]*>\s*<img [^>]*src="\/work\/([a-z]+-[a-z]+)-\d+\.webp"/g)].map(([, names, file]) => ({ names, file }))
+    const desktop = shots.filter((s) => s.file === `${site}-desktop`)
+    const phones = shots.filter((s) => s.file !== `${site}-desktop`)
+    assert.ok(desktop.length === 1 && phones.length === 2 && phones.some((s) => s.file === `${site}-phone`), `${site}: a desktop screen and two phone screens`)
+    assert.match(desktop[0].names, /^hidden .*\bmd:flex\b.*\bphone:hidden\b/, `${site}: on a phone, only the phone screens show, even with the browser asking for the desktop site; elsewhere the desktop screen joins them from 48rem`)
+    assert.match(page, /<div class="col-span-4 grid grid-cols-2 [^"]*\bmd:flex\b[^"]*\bphone:grid\b/, `${site}: and a phone keeps them two to a row`)
+    assert.ok(/\bmd:grow-4\b/.test(desktop[0].names) && phones.every((p) => /\bmd:grow(?: |$)/.test(p.names)), `${site}: the desktop screen (2:1) takes four times a phone screen’s (1:2) share of the row`)
     for (const heading of ['The brief', 'What we did', 'What we made']) assert.ok(page.includes(`>${heading}</h2>`), `${site}: ${heading}`)
     assert.match(page, /<dt[^>]*>Timeline<\/dt>/, `${site}: services and timeline`)
     assert.ok(page.includes(`href="${LIVE_SITES[site]}" target="_blank" rel="noopener">Open ${work.name}<span class="sr-only"> (opens in a new tab)</span>`), `${site}: opens the live site in a new tab`)
@@ -928,7 +934,11 @@ test('titles read "Page name, Marque", and the share image describes the studio 
 test('project captions share a baseline, and hovers that trade two colours outright do it at once, never fading through grey', () => {
   for (const id of WORK_PAGES) {
     const page = mainOf(source[id])
-    assert.ok(count(page, 'figcaption class="mt-auto pt-3') >= 2, `${id}: the two screen captions sit at the bottom of equal-height figures`)
+    const screens = page.slice(page.indexOf('aria-labelledby="screens-title"'), page.indexOf('</section>', page.indexOf('aria-labelledby="screens-title"')))
+    const figures = [...screens.matchAll(/<figure class="([^"]*)"/g)].map(([, names]) => names)
+    // Widths in the shots' own proportions (desktop 2:1, phone 1:2) make every shot the same height, so the captions line up.
+    assert.ok(figures.length === 3 && figures.every((names) => /\bmd:basis-0 md:grow(?:-4)?(?: |$)/.test(names)), `${id}: each shot’s share of the row follows its shape, so the shots and their captions line up`)
+    assert.match(screens, /<div class="col-span-4 grid grid-cols-2 [^"]*md:flex[ "]/, `${id}: two phone screens to a row on a phone, one row of three from 48rem`)
   }
   for (const id of ['usual', 'enamel'] as const) assert.match(mainOf(source[id]), /<a class="button button--brand [^"]*hover:bg-/, `${id}: the project button swaps its brand colours instead of taking the square`)
   for (const page of PAGES) assert.doesNotMatch(mainOf(source[page.id]), /transition-colors/, `${page.id}: no colour fade where background and text swap`)
