@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your briefs: client sign-in, Marque studio</title>
+    <meta name="description" content="Sign in with your email or mobile number and a one-time code to see the project briefs you saved from the Marque builder on this device." />
+    <link rel="canonical" href="%VITE_SITE_URL%account/" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="oklch(0.975 0.002 100)" />
+    <meta property="og:title" content="Your briefs: client sign-in, Marque studio" />
+    <meta property="og:description" content="Sign in with your email or mobile number and a one-time code to see the project briefs you saved from the Marque builder on this device." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="%VITE_SITE_URL%account/" />
+    <meta property="og:image" content="%VITE_SITE_URL%og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Marque, a brand and marketing studio in Mabolo, Cebu City." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Your briefs: client sign-in, Marque studio" />
+    <meta name="twitter:description" content="Sign in with your email or mobile number and a one-time code to see the project briefs you saved from the Marque builder on this device." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%og.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-ext-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>
+    <script type="module" src="/main.ts"></script>
+    <noscript>
+      <style>
+        [data-header] { position: sticky; }
+        body { padding-top: 0; }
+        [data-menu-button] { display: none; }
+        @media (max-width: 63.99rem) {
+          [data-header] > div { flex-wrap: wrap; height: auto; padding-block: 0.5rem; }
+          [data-header] nav { order: 3; width: 100%; }
+          [data-menu] { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 0 1.25rem; padding: 0; border: 0; }
+          [data-menu] a { min-height: 44px; border: 0; font-size: 1rem; }
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <!-- include:header current="account" -->
+
+    <main id="main" data-account>
+      <section class="wrap" aria-labelledby="briefs-title" data-reveal>
+        <div class="ruler" aria-hidden="true"></div>
+        <div class="grid-page gap-y-6 pt-[clamp(2.25rem,1rem+4vw,5rem)] md:gap-y-8">
+          <h1 class="col-span-4 md:col-span-12 lg:col-span-10 lg:col-start-3" id="briefs-title" tabindex="-1" data-reveal-item>Your briefs</h1>
+          <div class="col-span-4 md:col-span-8 lg:col-span-6 lg:col-start-3 in-data-signed-in:hidden" data-reveal-item>
+            <p class="max-w-[38rem] text-lead text-graphite">Every brief you save from the builder, filed under your first name. You sign in with a four-digit code this page shows you, not a password.</p>
+          </div>
+          <div class="col-span-4 hidden md:col-span-8 lg:col-span-6 lg:col-start-3 in-data-signed-in:block" data-reveal-item>
+            <p class="w-fit text-lead" id="account-greeting" tabindex="-1">Filed under <span data-account-greeting-name>your name</span>.</p>
+            <p class="mt-1 text-graphite" data-account-contact></p>
+            <button class="button button--outline mt-5" type="button" data-signout>Sign out</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="wrap pt-[clamp(2.5rem,1.5rem+3vw,4rem)] in-data-signed-in:hidden" aria-labelledby="signin-title" data-reveal>
+        <div class="grid-page gap-y-8">
+          <div class="col-span-4 border border-ink bg-sheet p-5 sm:p-8 md:col-span-8 lg:col-span-5 lg:col-start-3">
+            <form class="grid gap-5" data-signin="contact" novalidate>
+              <h2 class="text-h3" id="signin-title">Sign in with two lines and a code.</h2>
+              <div>
+                <label class="font-[560]" for="signin-first-name">Name on the file</label>
+                <p class="mt-0.5 text-sm text-graphite" id="signin-first-name-hint">Your first name is enough</p>
+                <input class="field mt-1.5" id="signin-first-name" name="first-name" type="text" autocomplete="given-name" maxlength="60" required aria-describedby="signin-first-name-hint" />
+                <p class="field-error" id="signin-first-name-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+              </div>
+              <div>
+                <label class="font-[560]" for="signin-contact">Email or mobile</label>
+                <p class="mt-0.5 text-sm text-graphite" id="signin-contact-hint">An address with an @, or a mobile number that starts with 09</p>
+                <input class="field mt-1.5" id="signin-contact" name="contact" type="text" autocomplete="username" maxlength="80" required aria-describedby="signin-contact-hint" />
+                <p class="field-error" id="signin-contact-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+              </div>
+              <button class="button justify-self-start" type="submit" disabled>Show my code</button>
+              <noscript><p class="font-[560]">This sign-in runs on JavaScript, which is off. Nothing typed here goes anywhere.</p></noscript>
+            </form>
+
+            <form class="grid gap-5" data-signin="code" novalidate hidden>
+              <h2 class="text-h3" id="code-title">Copy these four digits.</h2>
+              <p class="flex items-baseline justify-between gap-4 border-y border-ink py-4"><span class="text-sm text-graphite">Your code</span><strong class="tabular text-figure leading-tight font-[560] tracking-[0.08em]" data-demo-code>0000</strong></p>
+              <p class="text-sm text-graphite">A working studio would send it to <span class="font-[560] text-ink" data-code-contact></span>. This page prints it instead, and nothing is sent.</p>
+              <div>
+                <label class="font-[560]" for="signin-code">Four-digit code</label>
+                <input class="field tabular mt-1.5 max-w-[12rem] tracking-[0.2em]" id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+                <p class="field-error" id="signin-code-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <button class="button" type="submit" disabled>Open my briefs</button>
+                <noscript><p class="font-[560]">This step runs on JavaScript too.</p></noscript>
+                <button class="link inline-flex min-h-11 items-center" type="button" data-signin-back>Change name or contact</button>
+              </div>
+            </form>
+          </div>
+          <dl class="col-span-4 grid content-start gap-y-5 text-sm md:col-span-8 lg:col-span-3 lg:col-start-9">
+            <div class="border-t border-ink pt-3">
+              <dt class="font-[560]">What’s filed</dt>
+              <dd class="mt-1 text-graphite">Each brief you save from the builder, with its lines, totals and timeline. Open one to change it, or send it from Start a project.</dd>
+            </div>
+            <div class="border-t border-rule pt-3">
+              <dt class="font-[560]">Where it’s kept</dt>
+              <dd class="mt-1 text-graphite">In this browser, on this device. Nothing goes to the studio.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="wrap hidden pt-[clamp(2.5rem,1.5rem+3vw,4rem)] in-data-signed-in:block" aria-labelledby="saved-title">
+        <div class="grid-page min-h-[28rem] gap-y-8 content-start">
+          <div class="col-span-4 md:col-span-8 lg:col-span-7 lg:col-start-3">
+            <h2 class="sr-only" id="saved-title">Saved briefs</h2>
+            <p class="field-error mt-0 mb-4" id="briefs-error" tabindex="-1" hidden data-briefs-error><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+            <ul class="border-b border-ink" data-briefs></ul>
+            <div class="border-t border-ink py-6" data-briefs-empty>
+              <p class="text-h3 font-[560]">Nothing filed yet</p>
+              <p class="mt-2 max-w-[34rem] text-graphite">Price a project in the builder and press Save brief. It lands here with its lines, totals and timeline.</p>
+              <a class="button mt-5" href="/marque/start/">Open the builder</a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <p class="sr-only" aria-live="polite" data-account-status></p>
+    </main>
+
+    <!-- include:footer -->
+  </body>
+</html>

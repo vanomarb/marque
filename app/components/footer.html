@@ -1,0 +1,77 @@
+<footer class="mt-section" data-footer>
+  <div class="wrap">
+    <div class="ruler" aria-hidden="true"></div>
+    <form class="grid-page gap-y-5 py-10 md:py-12" data-mock-form="newsletter" novalidate>
+      <div class="col-span-4 md:col-span-6 lg:col-span-5">
+        <h2 class="text-h3" id="newsletter-title">Studio notes</h2>
+        <p class="mt-2 max-w-[34rem] text-graphite">One email a month: what we made, and what we learned about marketing a small business in Cebu.</p>
+      </div>
+      <div class="col-span-4 self-end md:col-span-6 lg:col-span-6 lg:col-start-7">
+        <label class="text-sm font-[560]" for="footer-email">Email address</label>
+        <div class="mt-1.5 flex flex-wrap gap-2">
+          <input class="field min-w-0 flex-1 basis-56" id="footer-email" name="email" type="email" autocomplete="email" placeholder="email@example.com" required aria-describedby="footer-email-status" />
+          <button class="button button--outline min-h-12" type="submit" disabled>Subscribe</button>
+        </div>
+        <p class="mt-2 min-h-6 text-sm" id="footer-email-status" aria-live="polite" data-form-status></p>
+        <noscript><p class="mt-1 text-sm">Subscribing needs JavaScript. Nothing you type is sent anywhere.</p></noscript>
+      </div>
+    </form>
+
+    <div class="grid-page gap-y-10 border-t border-rule py-10 md:py-12">
+      <div class="col-span-4 md:col-span-12 lg:col-span-6">
+        <p class="inline-flex items-center gap-2.5 text-[1.4375rem] leading-none font-[640] tracking-[-0.03em]">
+          <svg class="size-[1.625rem] flex-none" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M1.5 9V1.5H9M26.5 19v7.5H19" fill="none" stroke="currentColor" stroke-width="2" /><rect x="8" y="8" width="12" height="12" fill="currentColor" /></svg>
+          <span>Marque</span>
+        </p>
+        <p class="mt-4 max-w-[30rem] text-graphite">Brand identity, websites, social media and ads for cafés, clinics, shops and service businesses in Cebu.</p>
+        <dl class="mt-6 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
+          <dt class="text-graphite">Studio hours</dt>
+          <dd>Monday to Friday, 9:00 AM to 6:00 PM</dd>
+          <dt class="text-graphite">Area</dt>
+          <dd>Mabolo, Cebu City</dd>
+        </dl>
+      </div>
+      <nav class="col-span-2 md:col-span-4 lg:col-span-2" aria-labelledby="footer-company">
+        <h2 class="text-sm font-[560] tracking-normal text-graphite" id="footer-company">Company</h2>
+        <ul class="mt-2">
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%studio/">Studio</a></li>
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%work/">Work</a></li>
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%start/#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <nav class="col-span-2 md:col-span-4 lg:col-span-2" aria-labelledby="footer-help">
+        <h2 class="text-sm font-[560] tracking-normal text-graphite" id="footer-help">Help</h2>
+        <ul class="mt-2">
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%services/#faq">FAQ</a></li>
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%accessibility/" data-page="accessibility">Accessibility</a></li>
+        </ul>
+      </nav>
+      <nav class="col-span-4 md:col-span-4 lg:col-span-2" aria-labelledby="footer-legal">
+        <h2 class="text-sm font-[560] tracking-normal text-graphite" id="footer-legal">Legal</h2>
+        <ul class="mt-2">
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%terms/" data-page="terms">Terms of Service</a></li>
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%privacy/" data-page="privacy">Privacy Policy</a></li>
+          <li><a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%cookies/" data-page="cookies">Cookie Policy</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-1 border-t border-rule py-5 text-sm text-graphite" data-legal-row>
+      <p>© 2026 Marque</p>
+      <a class="link-quiet inline-flex min-h-11 items-center" href="%BASE_URL%terms/#concept" data-concept>About this site</a>
+    </div>
+  </div>
+</footer>
+
+<dialog class="m-auto w-[min(100%-2rem,34rem)] border border-ink bg-paper p-0 text-ink backdrop:bg-ink/60 motion-safe:open:animate-rise motion-safe:open:backdrop:animate-fade-in" id="concept-dialog" aria-labelledby="concept-title" aria-describedby="concept-text">
+  <div class="grid gap-4 p-[clamp(1.5rem,1rem+2vw,2.25rem)]">
+    <h2 class="text-h3" id="concept-title">About this site</h2>
+    <p id="concept-text">Marque is a concept brand. This is a demonstration site: nothing you enter here is sent, and no payments are taken.</p>
+    <p class="text-graphite">The studio, its prices and its process are examples, and the three projects on the Work page are concept sites too. The builder, the sign-in and the forms stay in your browser, which keeps only what it needs to show your saved briefs on this device.</p>
+    <ul class="flex flex-wrap gap-x-6">
+      <li><a class="link inline-flex min-h-11 items-center font-[560]" href="%BASE_URL%terms/">Terms of Service</a></li>
+      <li><a class="link inline-flex min-h-11 items-center font-[560]" href="%BASE_URL%privacy/">Privacy Policy</a></li>
+    </ul>
+    <button type="button" class="button button--outline justify-self-start" data-concept-close autofocus>Close</button>
+  </div>
+</dialog>

@@ -1,0 +1,683 @@
+/* Only what repeats on every page or what the scripts render lives here; the rest is utilities in the HTML. */
+@import 'tailwindcss' source(none);
+@import './fonts.css';
+
+@source '..';
+@source not '../**/*.test.ts';
+
+@theme {
+  --color-*: initial;
+  --color-paper: oklch(0.975 0.002 100);
+  --color-sheet: oklch(1 0 0);
+  --color-shade: oklch(0.94 0.002 100);
+  --color-ink: oklch(0.205 0 0);
+  --color-graphite: oklch(0.45 0 0);
+  --color-rule: oklch(0.87 0 0);
+  --color-rule-strong: oklch(0.6 0 0);
+  --color-on-ink-muted: oklch(0.78 0 0);
+  --color-rule-on-ink: oklch(0.5 0 0);
+
+  --font-*: initial;
+  --font-sans: 'Bricolage Grotesque', 'Bricolage Fallback', ui-sans-serif, system-ui, sans-serif;
+  --default-font-family: var(--font-sans);
+
+  --text-*: initial;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lead: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
+  --text-h3: clamp(1.3125rem, 1.2rem + 0.45vw, 1.5rem);
+  --text-figure: clamp(1.75rem, 1.45rem + 1.1vw, 2.5rem);
+  --text-h2: clamp(1.875rem, 1.4rem + 1.9vw, 2.75rem);
+  --text-h1: clamp(2.375rem, 1.45rem + 3.7vw, 4.5rem);
+
+  --spacing-gutter: clamp(1rem, 0.4rem + 2.6vw, 3rem);
+  --spacing-section: clamp(3.5rem, 2rem + 5vw, 7rem);
+  --spacing-header: 4.5rem;
+
+  --container-*: initial;
+  --container-page: 88rem;
+  --container-prose: 40rem;
+
+  --breakpoint-*: initial;
+  --breakpoint-xs: 25rem;
+  --breakpoint-sm: 36rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+
+  --ease-*: initial;
+  --ease-precise: cubic-bezier(0.2, 0, 0, 1);
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: var(--ease-precise);
+  --animate-*: initial;
+  --animate-fade-in: fade-in 180ms var(--ease-precise);
+  --animate-rise: rise 220ms var(--ease-precise);
+  --animate-drop: drop 200ms var(--ease-precise);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+}
+
+@utility wrap {
+  width: min(100% - 2 * var(--spacing-gutter), var(--container-page));
+  margin-inline: auto;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --gap: 1rem;
+    --cols: 4;
+
+    @variant md {
+      --gap: 1.5rem;
+      --cols: 12;
+    }
+
+    @variant max-sm {
+      --spacing-header: 4rem;
+    }
+  }
+
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    scroll-padding-top: calc(var(--spacing-header) + --spacing(4));
+    scroll-padding-bottom: 5rem;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: initial;
+  }
+
+  /* The page stays put under the open phone menu, keeping its scrollbar's space so nothing shifts sideways. */
+  html:has(#site-menu:modal) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  /* Smooth only once someone is using the page, so a deep link such as /start/#contact lands straight on it. */
+  @media (prefers-reduced-motion: no-preference) {
+    html:focus-within {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    min-height: 100dvh;
+    padding-top: var(--spacing-header);
+    background-color: var(--color-paper);
+    font-size: var(--text-base);
+    line-height: 1.55;
+    font-kerning: normal;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 560;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: var(--text-h1);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+  }
+
+  h3 {
+    font-size: var(--text-h3);
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  button,
+  summary {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  /* Something code moves focus to (tabindex="-1") isn't a control, so it draws no box that could pass for a field. */
+  [tabindex='-1']:not(a, button, input, select, textarea, summary):focus-visible {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+}
+
+@layer components {
+  .grid-page {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  /* The background draws a tick where every column starts; the right border is the tick at the far edge. */
+  .ruler {
+    height: 0.4375rem;
+    border-top: 1px solid var(--color-rule-strong);
+    border-right: 1px solid var(--color-rule-strong);
+    background-image: linear-gradient(to right, var(--color-rule-strong) 0 1px, transparent 1px);
+    background-size: calc((100% + var(--gap)) / var(--cols)) 100%;
+    background-repeat: repeat-x;
+  }
+
+  .margin-no {
+    font-size: var(--text-h3);
+    font-stretch: 75%;
+    font-weight: 480;
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    color: var(--color-graphite);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: --spacing(2);
+    min-height: 44px;
+    padding: 0 --spacing(5);
+    border: 1px solid var(--color-ink);
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-size: 1rem;
+    font-weight: 560;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+
+    &:hover {
+      background-color: var(--color-paper);
+      color: var(--color-ink);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition:
+        background-color var(--default-transition-duration) var(--ease-precise),
+        color var(--default-transition-duration) var(--ease-precise);
+    }
+  }
+
+  .button--outline {
+    background-color: transparent;
+    color: var(--color-ink);
+
+    &:hover {
+      background-color: var(--color-ink);
+      color: var(--color-paper);
+    }
+  }
+
+  .on-ink {
+    & .button {
+      border-color: var(--color-paper);
+      background-color: var(--color-paper);
+      color: var(--color-ink);
+
+      &:hover {
+        background-color: var(--color-ink);
+        color: var(--color-paper);
+      }
+    }
+
+    & :focus-visible {
+      outline-color: var(--color-paper);
+    }
+  }
+
+  /* Two underlines: a currentColor one that draws across on hover over a light resting one, which .link-quiet drops. */
+  .link,
+  .link-quiet {
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--color-rule-strong), var(--color-rule-strong));
+    background-position:
+      0 100%,
+      0 100%;
+    background-repeat: no-repeat;
+    background-size:
+      0% 1px,
+      100% 1px;
+    padding-bottom: 1px;
+
+    &:hover,
+    &:focus-visible,
+    &[aria-current='page'] {
+      background-size:
+        100% 1px,
+        100% 1px;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: background-size var(--default-transition-duration) var(--ease-precise);
+    }
+  }
+
+  /* A link stretched to a 44 px target keeps its line under the words, not at the bottom of the box. */
+  .link.inline-flex,
+  .link-quiet.inline-flex {
+    background-position:
+      0 calc(50% + 0.62em),
+      0 calc(50% + 0.62em);
+  }
+
+  .link-quiet {
+    background-size:
+      0% 1px,
+      0% 1px;
+
+    &:hover,
+    &:focus-visible,
+    &[aria-current='page'] {
+      background-size:
+        100% 1px,
+        0% 1px;
+    }
+  }
+
+  /* Only the words underline, not the number or icon beside them. */
+  .nav-account:hover .link-quiet,
+  .nav-account:focus-visible .link-quiet,
+  .nav-account[aria-current='page'] .link-quiet,
+  .menu-row:hover .link-quiet,
+  .menu-row:focus-visible .link-quiet,
+  .menu-row[aria-current='page'] .link-quiet {
+    background-size:
+      100% 1px,
+      0% 1px;
+  }
+
+  /* On the page grid, so the number and the name sit on the ruler's ticks. */
+  .menu-row {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: baseline;
+    min-height: 4rem;
+    padding-block: --spacing(3);
+    font-size: var(--text-h2);
+    font-weight: 560;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    text-decoration: none;
+
+    & .margin-no {
+      grid-column: span 1;
+    }
+
+    & .menu-name {
+      grid-column: 2 / -1;
+      min-width: 0;
+    }
+
+    &[aria-current='page'] .margin-no {
+      color: var(--color-ink);
+    }
+  }
+
+  .on-ink .link {
+    background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--color-rule-on-ink), var(--color-rule-on-ink));
+  }
+
+  .work-card {
+    display: block;
+    text-decoration: none;
+
+    & .work-frame {
+      display: block;
+      border: 1px solid var(--color-rule);
+      background-color: var(--color-shade);
+    }
+
+    & .work-made {
+      opacity: 0;
+    }
+
+    &:hover .work-frame,
+    &:focus-visible .work-frame {
+      transform: translateY(-4px);
+      border-color: var(--color-ink);
+    }
+
+    &:hover .work-made,
+    &:focus-visible .work-made {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline-offset: 6px;
+    }
+
+    @media (hover: none) {
+      & .work-made {
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      & .work-frame {
+        transition:
+          transform 220ms var(--ease-precise),
+          border-color 220ms var(--ease-precise);
+      }
+
+      & .work-made {
+        transition: opacity 200ms var(--ease-precise);
+      }
+    }
+  }
+
+  .shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-rule);
+    background-color: var(--color-shade);
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: --spacing(2.5) --spacing(3);
+    border: 1px solid var(--color-ink);
+    background-color: var(--color-sheet);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+
+    &::placeholder {
+      color: var(--color-graphite);
+      opacity: 1;
+    }
+
+    &[aria-invalid='true'] {
+      border-width: 2px;
+      padding: calc(--spacing(2.5) - 1px) calc(--spacing(3) - 1px);
+    }
+
+    &:focus-visible {
+      outline-offset: 2px;
+    }
+  }
+
+  textarea.field {
+    min-height: 12rem;
+    resize: vertical;
+  }
+
+  .field-error {
+    display: flex;
+    gap: --spacing(1.5);
+    align-items: flex-start;
+    margin-top: --spacing(1.5);
+    font-size: var(--text-sm);
+    font-weight: 560;
+  }
+
+  .check {
+    appearance: none;
+    flex: none;
+    display: grid;
+    place-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border: 1px solid var(--color-ink);
+    background-color: var(--color-sheet);
+
+    &::after {
+      content: '';
+      width: 12px;
+      height: 7px;
+      margin-top: -3px;
+      border-left: 2px solid var(--color-paper);
+      border-bottom: 2px solid var(--color-paper);
+      transform: rotate(-45deg);
+      opacity: 0;
+    }
+
+    &:checked {
+      background-color: var(--color-ink);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+
+  .service-row {
+    border-top: 1px solid var(--color-rule);
+
+    &:has(.check:checked) {
+      border-top-color: var(--color-ink);
+    }
+  }
+
+  .segments {
+    display: inline-flex;
+    flex-wrap: wrap;
+
+    & label {
+      position: relative;
+      display: inline-flex;
+    }
+
+    & input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    & span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 --spacing(3);
+      border: 1px solid var(--color-ink);
+      margin-left: -1px;
+      background-color: var(--color-sheet);
+      font-variant-numeric: tabular-nums;
+      font-weight: 520;
+    }
+
+    & label:first-child span {
+      margin-left: 0;
+    }
+
+    & input:checked + span {
+      background-color: var(--color-ink);
+      color: var(--color-paper);
+    }
+
+    & input:focus-visible + span {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    & input:hover:not(:checked) + span {
+      background-color: var(--color-shade);
+    }
+  }
+
+  /* Until its service is picked, a row's chosen segment is grey, not ink. */
+  .service-row:not(:has(.check:checked)) .segments input:checked + span {
+    background-color: var(--color-shade);
+    color: var(--color-ink);
+  }
+
+  .stepper {
+    display: inline-flex;
+    align-items: stretch;
+
+    & button {
+      display: grid;
+      place-content: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--color-ink);
+      background-color: var(--color-sheet);
+      color: var(--color-ink);
+
+      &:hover:not(:disabled) {
+        background-color: var(--color-ink);
+        color: var(--color-paper);
+      }
+
+      &:disabled {
+        border-color: var(--color-rule-strong);
+        color: var(--color-graphite);
+        cursor: not-allowed;
+      }
+    }
+
+    & output {
+      display: grid;
+      place-content: center;
+      min-width: 3rem;
+      border-block: 1px solid var(--color-ink);
+      background-color: var(--color-sheet);
+      font-weight: 560;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .faq {
+    border-top: 1px solid var(--color-rule);
+
+    & summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: --spacing(4);
+      min-height: 3.5rem;
+      padding-block: --spacing(3);
+      font-size: var(--text-h3);
+      font-weight: 520;
+      line-height: 1.25;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::after {
+        content: '+';
+        flex: none;
+        width: 1.5rem;
+        text-align: center;
+        font-weight: 400;
+      }
+    }
+
+    &[open] summary::after {
+      content: '\2212';
+    }
+  }
+
+  .prose-legal {
+    max-width: var(--container-prose);
+
+    & h2 {
+      margin-top: --spacing(14);
+      font-size: var(--text-h3);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    & h2:first-child {
+      margin-top: 0;
+    }
+
+    & p,
+    & ul,
+    & dl {
+      margin-top: --spacing(4);
+    }
+
+    & ul {
+      padding-left: --spacing(5);
+      list-style: square;
+    }
+
+    & li + li {
+      margin-top: --spacing(2);
+    }
+
+    & a {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
+  }
+}
+
+/* Scroll reveal: shared/reveal.ts marks only targets below the first screen as pending. */
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .js [data-reveal-pending] {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .js [data-reveal-pending][data-in] {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 520ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+        transform 520ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+    }
+  }
+}
