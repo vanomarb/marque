@@ -20,6 +20,9 @@ Open `http://localhost:5173/marque/`. The site is always served under `/marque/`
 
 ## Deploy
 
-Every push to `main` runs `.github/workflows/pages.yml`. It runs the tests, builds, and publishes `dist/` to GitHub Pages at `https://<username>.github.io/marque/`. In the repository's Pages settings, the source must be GitHub Actions.
+Every push to `main` runs `.github/workflows/pages.yml`. It runs the tests, builds, and publishes `dist/` to GitHub Pages
+at `https://<username>.github.io/marque/`.
+In the repository's Pages settings, the source must be GitHub Actions.
 
-The workflow passes the repository's Pages address to the build as `VITE_SITE_URL`, and canonical and Open Graph links are built from it. A local build uses the preview address; to build with another, copy `.env.example` to `.env`.
+The workflow passes the repository's Pages address to the build as `VITE_SITE_URL`, and canonical and Open Graph links
+are built from it. A local build uses the preview address; to build with another, copy `.env.example` to `.env`.

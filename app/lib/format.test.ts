@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { escapeHtml, parseDollars, dollars, signedDollars } from './format.ts'
+import { escapeHtml, parseDollars, dollars, priceMarkup } from './format.ts'
 
 test('dollars format without decimals', () => {
   assert.equal(dollars(85), '$85')
@@ -8,11 +8,10 @@ test('dollars format without decimals', () => {
   assert.equal(dollars(45000), '$45,000')
 })
 
-test('a discount reads with a true minus sign before the dollar sign', () => {
-  assert.equal(signedDollars(-162), '−$162')
-  assert.equal(signedDollars(-1080), '−$1,080')
-  assert.equal(signedDollars(39), '$39')
-  assert.equal(signedDollars(0), '$0')
+test('a discounted price strikes the regular one and names both for screen readers', () => {
+  assert.equal(priceMarkup(39), '$39', 'no regular price, no strikethrough')
+  assert.equal(priceMarkup(690, 690), '$690')
+  assert.equal(priceMarkup(587, 690), '<s class="price-was"><span class="sr-only">Regular price </span>$690</s> <span class="price-now"><span class="sr-only">first-project price </span>$587</span>')
 })
 
 test('text typed by a visitor is escaped before it goes into markup', () => {

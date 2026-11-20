@@ -3,18 +3,17 @@ import { JSDOM, VirtualConsole } from 'jsdom'
 import { includePartials } from '../build/partials.ts'
 import { BASE } from '../build/site.ts'
 import { boot } from '../app/boot.ts'
+import type { Backend } from '../app/lib/backend/index.ts'
 
 // The stand-ins below imitate what jsdom lacks; they are not the code under test.
 
-const root = new URL('../app/', import.meta.url)
-const read = (path: string) => readFileSync(new URL(path, root), 'utf8')
-const partials = { header: read('components/header.html'), footer: read('components/footer.html') }
+/** A file in the repository, by its path from the repository root. */
+export const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
+const partials = { head: read('app/components/head.html'), header: read('app/components/header.html'), footer: read('app/components/footer.html') }
 
-export interface PageOptions {
+interface PageOptions {
   /** Set before the page parses; values that aren't strings are JSON-encoded. */
   storage?: Record<string, unknown>
-  /** At least 64rem wide. Default: a phone. */
-  wide?: boolean
   /** Default true, so totals are set at once. */
   reducedMotion?: boolean
 }
@@ -22,8 +21,8 @@ export interface PageOptions {
 export interface Page {
   window: JSDOM['window']
   document: Document
-  /** Returns any start-up errors it logged. */
-  boot(): string[]
+  /** Returns any start-up errors it logged. Without a backend, the page gets the real local one. */
+  boot(backend?: Backend): string[]
   $<T extends Element = HTMLElement>(selector: string): T
   $$<T extends Element = HTMLElement>(selector: string): T[]
   type(selector: string, text: string): void
@@ -45,13 +44,13 @@ export function closeAll(): void {
 /** `file` is relative to app/; `path` may carry a query, like 'start/?set=launch'. */
 export function loadPage(file: string, path: string, options: PageOptions = {}): Page {
   const { storage = {}, reducedMotion = true } = options
-  let wide = options.wide ?? false
+  let wide = false
   const mediaListeners = new Set<(event: { matches: boolean }) => void>()
   const virtualConsole = new VirtualConsole()
   const problems: string[] = []
   virtualConsole.on('jsdomError', (error: Error) => problems.push(error.message))
 
-  const dom = new JSDOM(includePartials(read(file), partials, BASE), {
+  const dom = new JSDOM(includePartials(read(`app/${file}`), partials, BASE), {
     url: `https://marque.test${BASE}${path}`,
     pretendToBeVisual: true,
     // The only mode where jsdom runs inline scripts while parsing and keeps <noscript> inert. boot() stands in for
@@ -116,7 +115,7 @@ export function loadPage(file: string, path: string, options: PageOptions = {}):
   const page: Page = {
     window,
     document,
-    boot() {
+    boot(backend) {
       // The feature modules use the browser's globals, so point them at this page.
       Object.assign(globalThis, {
         window,
@@ -130,7 +129,7 @@ export function loadPage(file: string, path: string, options: PageOptions = {}):
       const original = console.error
       console.error = (...args: unknown[]) => void logged.push(args.map(String).join(' '))
       try {
-        boot()
+        boot(backend)
       } finally {
         console.error = original
       }

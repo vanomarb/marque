@@ -1,9 +1,11 @@
+import { initAccount } from './account/account.ts'
+import { createBackend, type Backend } from './lib/backend/index.ts'
+import { initButtonFill } from './shared/fill.ts'
 import { initNav } from './shared/nav.ts'
+import { initNewsletter } from './shared/newsletter.ts'
 import { initReveal } from './shared/reveal.ts'
-import { initMockForms } from './shared/forms.ts'
 import { initBuilder } from './start/builder.ts'
 import { initContact } from './start/contact.ts'
-import { initAccount } from './account/account.ts'
 import { initWorks } from './works/works.ts'
 
 /** The forms are switched off in the HTML so that, without this script, a submit can never put what a visitor typed into the URL. */
@@ -25,14 +27,15 @@ function mount(selector: string, init: (root: HTMLElement) => void): void {
   if (root) start(selector, () => init(root))
 }
 
-/** main.ts calls this in the browser and tests/harness.ts calls it in jsdom, so the tests run exactly this. */
-export function boot(): void {
+/** Tests call this too, so they run the real start-up, with their own backend if they pass one. */
+export function boot(backend: Backend = createBackend()): void {
   start('forms on', enableForms)
   start('navigation', initNav)
-  start('forms', initMockForms)
-  mount('[data-builder]', initBuilder)
-  mount('[data-contact]', initContact)
-  mount('[data-account]', initAccount)
+  start('button fill', initButtonFill)
+  start('newsletter', () => initNewsletter(backend))
+  mount('[data-builder]', (root) => initBuilder(root, backend))
+  mount('[data-contact]', (root) => initContact(root, backend))
+  mount('[data-account]', (root) => initAccount(root, backend))
   mount('[data-works]', initWorks)
   start('scroll reveal', initReveal)
 }

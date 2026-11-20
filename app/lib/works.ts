@@ -16,7 +16,7 @@ export const WORKS: readonly Work[] = [
   { id: 'enamel', name: 'Enamel', type: 'Dental clinic', launched: '2026-11-20' },
 ]
 
-export type WorkSort = 'newest' | 'oldest' | 'name'
+type WorkSort = 'newest' | 'oldest' | 'name'
 
 /** What the sort control announces, after "Showing". */
 export const SORT_NAMES: Record<WorkSort, string> = { newest: 'newest first', oldest: 'oldest first', name: 'by name, A to Z' }
@@ -31,10 +31,4 @@ export function sortWorks<T extends Pick<Work, 'name' | 'launched'>>(items: read
     const byDate = by === 'newest' ? b.launched.localeCompare(a.launched) : a.launched.localeCompare(b.launched)
     return byDate || byName(a, b)
   })
-}
-
-/** The project before and after this one, going round the list in launch order. */
-export function neighbours(id: WorkId): { previous: Work; next: Work } {
-  const at = WORKS.findIndex((w) => w.id === id)
-  return { previous: WORKS[(at + WORKS.length - 1) % WORKS.length], next: WORKS[(at + 1) % WORKS.length] }
 }

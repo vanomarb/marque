@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
+import { read } from './harness.ts'
 
 const app = new URL('../app/', import.meta.url)
-const read = (path: string) => readFileSync(new URL(path, app), 'utf8')
 const stylesheets = readdirSync(new URL('styles/', app)).filter((file) => file.endsWith('.css'))
 
 /** Every transition, animation, transform start state and smooth scroll lives inside a no-preference media query. */
@@ -22,7 +22,7 @@ function unguardedMotion(css: string): string[] {
 
 test('with reduced motion, nothing in the stylesheets moves', () => {
   assert.ok(stylesheets.includes('main.css'), 'reads the stylesheets in app/styles')
-  for (const file of stylesheets) assert.deepEqual(unguardedMotion(read(`styles/${file}`)), [], file)
+  for (const file of stylesheets) assert.deepEqual(unguardedMotion(read(`app/styles/${file}`)), [], file)
 })
 
 test('the guard catches motion outside the media query', () => {
@@ -31,7 +31,7 @@ test('the guard catches motion outside the media query', () => {
 })
 
 test('the scroll reveal hides nothing unless the page is marked js and motion is welcome', () => {
-  const css = read('styles/main.css')
+  const css = read('app/styles/main.css')
   const reveal = css.slice(css.indexOf('Scroll reveal'))
   const guard = reveal.indexOf('@media (prefers-reduced-motion: no-preference)')
   assert.ok(guard > 0, 'inside the no-preference query')
@@ -57,19 +57,19 @@ test('with reduced motion, no utility in the markup or the scripts moves', () =>
   const pages = ['index.html', '404.html', 'components/header.html', 'components/footer.html', ...nested]
   assert.ok(pages.length >= 17, 'finds every page, the project pages under works/ too')
   const sources = [...pages, ...readdirSync(app, { recursive: true, encoding: 'utf8' }).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))]
-  const animated = sources.flatMap((file) => classTokens(read(file))).filter((token) => /(^|:)(transition|animate-)/.test(token))
+  const animated = sources.flatMap((file) => classTokens(read(`app/${file}`))).filter((token) => /(^|:)(transition|animate-)/.test(token))
   assert.ok(animated.length > 0, 'finds the animated utilities')
-  for (const file of sources) assert.deepEqual(unguardedUtilities(read(file)), [], file)
+  for (const file of sources) assert.deepEqual(unguardedUtilities(read(`app/${file}`)), [], file)
 })
 
 test('what is already on screen is never hidden: the script marks only targets below the first screen as pending', () => {
-  const reveal = read('shared/reveal.ts')
+  const reveal = read('app/shared/reveal.ts')
   assert.match(reveal, /getBoundingClientRect\(\)\.top >= window\.innerHeight/, 'measures before hiding')
   assert.equal((reveal.match(/setAttribute\('data-reveal-pending'/g) ?? []).length, 1, 'one place adds the pending state')
   assert.match(reveal, /below\.forEach\(\(el\) => el\.setAttribute\('data-reveal-pending'/, 'and only to targets below the fold')
 })
 
 test('scripted motion checks the visitor’s setting first', () => {
-  assert.match(read('start/count.ts'), /prefers-reduced-motion: reduce/)
-  assert.match(read('shared/reveal.ts'), /prefers-reduced-motion: reduce/)
+  assert.match(read('app/start/count.ts'), /prefers-reduced-motion: reduce/)
+  assert.match(read('app/shared/reveal.ts'), /prefers-reduced-motion: reduce/)
 })

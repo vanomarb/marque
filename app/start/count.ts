@@ -4,7 +4,7 @@ import { dollars } from '../lib/format.ts'
 const running = new WeakMap<HTMLElement, number>()
 
 /** Eases to the amount over 200 ms from the figure on screen (see countFrom); reduced motion sets it at once. */
-export function showPeso(el: HTMLElement, amount: number): void {
+export function showDollars(el: HTMLElement, amount: number): void {
   const last = el.dataset.amount === undefined ? undefined : Number(el.dataset.amount)
   const from = countFrom(el.textContent, last, amount)
   el.dataset.amount = String(amount)

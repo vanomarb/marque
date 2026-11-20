@@ -15,28 +15,14 @@
     <meta property="og:image" content="%VITE_SITE_URL%og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Marque, a brand and marketing studio for small businesses." />
+    <meta property="og:image:alt" content="Marque, a brand and website studio for founders." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Marque, brand and website studio for founders" />
     <meta name="twitter:description" content="Brand identity and websites for founders, ready in 1 to 3 days, plus social media and ads. Every price on the page, and 15% off your first project." />
     <meta name="twitter:image" content="%VITE_SITE_URL%og.png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>
-    <script type="module" src="/main.ts"></script>
-    <noscript>
-      <style>
-        [data-header] { position: sticky; }
-        body { padding-top: 0; }
-        [data-menu-button] { display: none; }
-        @media (max-width: 63.99rem) {
-          [data-header] > div { flex-wrap: wrap; height: auto; padding-block: 0.5rem; }
-          [data-header] nav { order: 3; width: 100%; }
-          [data-menu] { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 0 1.25rem; padding: 0; border: 0; }
-          [data-menu] a { min-height: 44px; border: 0; font-size: 1rem; }
-        }
-      </style>
-    </noscript>
+    <!-- include:head -->
   </head>
   <body>
     <!-- include:header current="home" -->
@@ -44,16 +30,34 @@
     <main id="main">
       <section class="wrap" aria-labelledby="hero-title" data-reveal>
         <div class="ruler" aria-hidden="true"></div>
-        <div class="grid-page gap-y-6 pt-[clamp(2.25rem,1rem+4vw,5rem)] md:gap-y-8">
-          <h1 class="col-span-4 md:col-span-12 lg:col-span-10 lg:col-start-3" id="hero-title" data-reveal-item>Your brand and website, ready in three days.</h1>
-          <p class="col-span-4 max-w-[34rem] text-lead text-graphite md:col-span-7 lg:col-span-5 lg:col-start-3" data-reveal-item>A small studio for founders starting or running a business, wherever you are. Identity and website in 1 to 3 days, social media and ads after launch, and every price on the page.</p>
-          <div class="col-span-4 md:col-span-5 md:self-end lg:col-span-4 lg:col-start-9" data-reveal-item>
-            <div class="flex flex-wrap items-center gap-x-7 gap-y-3">
+        <div class="grid-page gap-y-10 pt-[clamp(2.25rem,1rem+4vw,5rem)]">
+          <div class="col-span-4 md:col-span-7 lg:col-span-6 lg:col-start-3" data-reveal-item>
+            <h1 id="hero-title">Your brand and website, ready in three days.</h1>
+            <p class="mt-6 max-w-[34rem] text-lead text-graphite">A small studio for founders starting or running a business, wherever you are. Identity and website in 1 to 3 days, social media and ads after launch, and every price on the page.</p>
+            <div class="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3">
               <a class="button" href="/marque/start/">Build your project brief</a>
               <a class="link inline-flex min-h-11 items-center font-[560]" href="/marque/works/">See the works</a>
             </div>
-            <p class="mt-3 text-sm text-graphite"><span class="offer text-ink">First project, 15% off</span> <span class="ml-1">on one-time work</span></p>
           </div>
+          <figure class="col-span-4 self-end border border-ink bg-sheet p-5 sm:p-6 md:col-span-5 lg:col-span-4 lg:col-start-9" aria-labelledby="receipt-title" data-reveal-item>
+            <figcaption>
+              <span class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2"><span class="text-h3 font-[560]" id="receipt-title">Launch plan</span><span class="offer">First project, 15% off</span></span>
+              <span class="mt-1 block text-sm text-graphite">Brand identity and a six-page site, priced the way the builder prices your brief: 15% off each one-time service on your first project, rounded to the dollar in your favour.</span>
+            </figcaption>
+            <ul class="tabular mt-4 text-sm">
+              <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Brand identity</span><span class="flex-none"><s class="price-was"><span class="sr-only">Regular price </span>$390</s> <span class="price-now"><span class="sr-only">first-project price </span>$331</span></span></li>
+              <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Website, 6 pages</span><span class="flex-none"><s class="price-was"><span class="sr-only">Regular price </span>$690</s> <span class="price-now"><span class="sr-only">first-project price </span>$586</span></span></li>
+              <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Managed hosting</span><span class="flex-none">$39 a month</span></li>
+            </ul>
+            <p class="price-now border-t border-rule py-2 text-sm font-[560]">You save $163 on your first project</p>
+            <dl class="tabular border-t border-ink text-sm">
+              <div class="flex items-baseline justify-between gap-4 py-2"><dt class="text-graphite">One-time</dt><dd class="text-right"><s class="price-was"><span class="sr-only">Regular price </span>$1,080</s> <span class="price-now text-lead font-[560]"><span class="sr-only">first-project price </span>$917</span></dd></div>
+              <div class="flex items-baseline justify-between gap-4 border-t border-rule py-2"><dt class="text-graphite">Monthly</dt><dd class="font-[560]">$39</dd></div>
+              <div class="flex items-baseline justify-between gap-4 border-t border-rule py-2"><dt class="text-graphite">Timeline</dt><dd class="text-right font-[560]">1 to 3 days</dd></div>
+            </dl>
+            <p class="text-sm text-graphite">Ready by day 3, or $5 off for each day late, up to the price of that service.</p>
+            <a class="link mt-2 inline-flex min-h-11 items-center font-[560]" href="/marque/start/?set=launch">Open the Launch plan in the builder</a>
+          </figure>
         </div>
       </section>
 
@@ -62,7 +66,7 @@
         <div class="grid-page gap-y-8 pt-6">
           <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true" data-reveal-item>01</p>
           <div class="col-span-4 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 md:col-span-12 lg:col-span-10" data-reveal-item>
-            <h2 class="max-w-[16ch]" id="work-title">Three projects, all of them live.</h2>
+            <h2 class="max-w-[16ch]" id="work-title">Three studio projects, all of them live.</h2>
             <a class="link inline-flex min-h-11 items-center font-[560]" href="/marque/works/">See all works</a>
           </div>
           <a class="work-card col-span-4 md:col-span-6 lg:col-span-5 lg:col-start-3" href="/marque/works/usual/" data-reveal-item>
@@ -82,29 +86,28 @@
           </a>
           <div class="col-span-4 self-center md:col-span-6 lg:col-span-5 lg:col-start-8" data-reveal-item>
             <p class="text-lead">A coffee bar that takes orders ahead, a car wash that shows its line, a clinic that shows its prices. Each has its own name, look and type, and a site you can use.</p>
-            <p class="mt-4 text-graphite">We set these briefs ourselves and made each one end to end. Each project page shows what we made and why, with a link to the live site.</p>
+            <p class="mt-4 text-graphite">These three are studio projects: we set the briefs ourselves and made each one end to end. Each project page shows what we made and why, with a link to the live site. The figures and quotes below come from client work.</p>
           </div>
+          <div class="col-span-4 md:col-span-12 lg:col-span-10 lg:col-start-3" data-reveal-item><!-- samples:stats --></div>
         </div>
       </section>
 
       <section class="on-ink mt-section bg-ink text-paper" aria-labelledby="launch-title" data-reveal>
         <div class="wrap grid-page gap-y-8 py-[clamp(3.5rem,2rem+4vw,6rem)]">
           <div class="col-span-4 md:col-span-7 lg:col-span-5 lg:col-start-3" data-reveal-item>
-            <h2 id="launch-title">The launch set</h2>
+            <h2 id="launch-title">The Launch plan</h2>
             <p class="mt-5 max-w-[30rem] text-lead text-on-ink-muted">For founders opening something new: brand identity and a six-page website, made together by one team, so the sign, the menu and the site match from day one.</p>
           </div>
           <div class="col-span-4 self-end md:col-span-5 lg:col-span-4 lg:col-start-9" data-reveal-item>
-            <p class="tabular text-h2 leading-none font-[560] tracking-[-0.02em]"><s class="price-was text-h3"><span class="sr-only">regular price </span>$1,080</s> <span class="sr-only">first-project price </span>$918</p>
-            <p class="mt-3"><span class="offer">First project, 15% off</span></p>
-            <p class="mt-3 text-on-ink-muted">One-time, ready in 1 to 3 days once you approve the quote and send your text and photos. If we deliver after day 3, $5 comes off for each day late. Then $39 a month if we host it, or no monthly fee if you take the code.</p>
-            <a class="button mt-7" href="/marque/start/?set=launch">Price the launch set</a>
+            <p class="text-h2 leading-none font-[560] tracking-[-0.02em]">Ready by day 3</p>
+            <p class="mt-4 text-on-ink-muted">Counted from the day you approve the quote. For a website, from the day your text and photos are in. If we deliver after day 3, $5 comes off for each day late, up to the price of that service. Then $39 a month if we host the site, or no monthly fee if you take the code.</p>
+            <a class="button mt-7" href="/marque/start/?set=launch">Price the Launch plan</a>
           </div>
           <div class="col-span-4 md:col-span-12 lg:col-span-10 lg:col-start-3" data-reveal-item>
             <h3 class="text-base font-[560] tracking-normal">What Managed hosting includes, for $39 a month</h3>
             <ul class="mt-3 grid gap-x-[var(--gap)] border-b border-rule-on-ink text-on-ink-muted sm:grid-cols-2 lg:grid-cols-3">
               <li class="border-t border-rule-on-ink py-2.5">A free Marque subdomain, or a domain you own, connected for you</li>
-              <li class="border-t border-rule-on-ink py-2.5">Automatic SSL and a global CDN</li>
-              <li class="border-t border-rule-on-ink py-2.5">Automatic deploys and daily backups</li>
+              <li class="border-t border-rule-on-ink py-2.5">Daily backups</li>
               <li class="border-t border-rule-on-ink py-2.5">Uptime monitoring and security updates</li>
               <li class="border-t border-rule-on-ink py-2.5">SEO setup: titles, descriptions, a sitemap, structured data and Search Console</li>
               <li class="border-t border-rule-on-ink py-2.5">Up to an hour of edits a month</li>
@@ -125,12 +128,12 @@
               <dd class="mt-2 max-w-[30rem] text-graphite">Every service shows the price it starts from, and the builder adds up your mix before you talk to anyone. After the first call you get one fixed price, in writing.</dd>
             </div>
             <div class="border-t border-ink pt-4" data-reveal-item>
-              <dt class="text-h3 font-[560]">Day 3, or money off</dt>
+              <dt class="text-h3 font-[560]">Ready by day 3, or $5 off</dt>
               <dd class="mt-2 max-w-[30rem] text-graphite">Every one-time service is ready in 1 to 3 days. If we deliver after day 3, $5 comes off the final invoice for each day late, up to the price of that service.</dd>
             </div>
             <div class="border-t border-ink pt-4" data-reveal-item>
               <dt class="text-h3 font-[560]">Your files, your code</dt>
-              <dd class="mt-2 max-w-[30rem] text-graphite">You own the logo files, the guidelines and the website’s code. If you leave Managed hosting, the code goes with you.</dd>
+              <dd class="mt-2 max-w-[30rem] text-graphite">Once the project is paid, you own the logo files, the guidelines and the website’s code. If you leave Managed hosting, the code goes with you.</dd>
             </div>
             <div class="border-t border-ink pt-4" data-reveal-item>
               <dt class="text-h3 font-[560]">Made for how your customers buy</dt>
@@ -148,14 +151,14 @@
             <h2 class="max-w-[16ch]" id="services-title">Services and starting prices</h2>
             <a class="link inline-flex min-h-11 items-center font-[560]" href="/marque/services/">What each one includes</a>
           </div>
-          <p class="col-span-4 text-sm text-graphite md:col-span-12 lg:col-span-10 lg:col-start-3" data-reveal-item><span class="offer mr-2 text-ink">First project, 15% off</span>New clients pay the first-project price on one-time work. The struck-through figure is the regular price.</p>
+          <p class="col-span-4 text-sm text-graphite md:col-span-12 lg:col-span-10 lg:col-start-3" data-reveal-item><span class="offer mr-2">First project, 15% off</span>New clients pay the first-project price on one-time work. The struck-through figure is the regular price.</p>
           <ul class="col-span-4 border-b border-rule md:col-span-12 lg:col-span-10 lg:col-start-3">
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#identity"><span class="text-h3 font-[560]">Brand identity</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">regular price </span>$390</s> <span class="sr-only">first-project price </span>$332 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">one-time, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Logo files, colours, type and a short guidelines PDF</span></a></li>
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#website"><span class="text-h3 font-[560]">Website</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">regular price </span>$690</s> <span class="sr-only">first-project price </span>$587 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">one-time, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Design and build, up to 6 pages; we host it for $39 a month, or hand over the code</span></a></li>
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#social"><span class="text-h3 font-[560]">Social media management</span><span class="tabular text-right font-[560] md:order-3">from $290 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">a month</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">1 platform and 12 posts a month, same-day replies; 2 platforms $390</span></a></li>
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#ads"><span class="text-h3 font-[560]">Ads management</span><span class="tabular text-right font-[560] md:order-3">from $250 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">a month, plus ad spend</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Meta and Google ads, set up, run and reported monthly</span></a></li>
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#photo"><span class="text-h3 font-[560]">Photo and video</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">regular price </span>$290</s> <span class="sr-only">first-project price </span>$247 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">per shoot, edited in 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">A half-day with a local photographer we book: 20 edited photos or 3 short videos</span></a></li>
-            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline motion-safe:transition-colors" href="/marque/services/#print"><span class="text-h3 font-[560]">Menu, signage and print design</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">regular price </span>$90</s> <span class="sr-only">first-project price </span>$77 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">per piece, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">One menu, sign, flyer or packaging design, with print-ready files</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#identity"><span class="text-h3 font-[560]">Brand identity</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">Regular price </span>$390</s> <span class="price-now group-hover:text-on-ink-save"><span class="sr-only">first-project price </span>$331</span> <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">one-time, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Logo files, colours, type and a short guidelines PDF</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#website"><span class="text-h3 font-[560]">Website</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">Regular price </span>$690</s> <span class="price-now group-hover:text-on-ink-save"><span class="sr-only">first-project price </span>$586</span> <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">one-time, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Design and build, up to 6 pages; we host it for $39 a month, or hand over the code</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#social"><span class="text-h3 font-[560]">Social media management</span><span class="tabular text-right font-[560] md:order-3">from $290 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">a month</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">1 platform and 12 posts a month, same-day replies; 2 platforms $390</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#ads"><span class="text-h3 font-[560]">Ads management</span><span class="tabular text-right font-[560] md:order-3">from $250 <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">a month, plus ad spend</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">Meta and Google ads. Set up, run and reported monthly. Ad spend is billed separately.</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#photo"><span class="text-h3 font-[560]">Photo and video</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">Regular price </span>$290</s> <span class="price-now group-hover:text-on-ink-save"><span class="sr-only">first-project price </span>$246</span> <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">per shoot, edited in 1 to 3 days after the shoot</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">A half-day with a local photographer we book: 20 edited photos or 3 short videos</span></a></li>
+            <li data-reveal-item><a class="group grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 border-t border-rule px-3 py-5 hover:bg-ink md:px-5 hover:text-paper md:grid-cols-[minmax(0,4fr)_minmax(0,5fr)_minmax(0,3fr)] md:items-baseline" href="/marque/services/#print"><span class="text-h3 font-[560]">Menu, signage and print design</span><span class="tabular text-right font-[560] md:order-3">from <s class="price-was group-hover:text-on-ink-muted"><span class="sr-only">Regular price </span>$90</s> <span class="price-now group-hover:text-on-ink-save"><span class="sr-only">first-project price </span>$76</span> <span class="block text-sm font-normal text-graphite group-hover:text-on-ink-muted">per piece, 1 to 3 days</span></span><span class="col-span-2 text-graphite group-hover:text-on-ink-muted md:col-span-1">One menu, sign, flyer or packaging design, with print-ready files</span></a></li>
           </ul>
         </div>
       </section>
@@ -195,6 +198,7 @@
               <p class="mt-2 text-graphite">On Managed hosting, the site goes live on a free Marque subdomain or your own domain. Or we hand over the code and a deploy guide.</p>
             </li>
           </ol>
+          <div class="col-span-4 md:col-span-12 lg:col-span-10 lg:col-start-3" data-reveal-item><!-- samples:quotes ids="turnaround,handover" --></div>
         </div>
       </section>
 

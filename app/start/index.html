@@ -3,40 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Start a project: price your brief, Marque studio</title>
+    <title>Start a project, Marque</title>
     <meta name="description" content="Pick the services you need and watch the one-time and monthly prices, the first-project discount and the 1 to 3 day timeline add up, then save the brief." />
     <link rel="canonical" href="%VITE_SITE_URL%start/" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="oklch(0.975 0.002 100)" />
-    <meta property="og:title" content="Start a project: price your brief, Marque studio" />
+    <meta property="og:title" content="Start a project, Marque" />
     <meta property="og:description" content="Pick the services you need and watch the one-time and monthly prices, the first-project discount and the 1 to 3 day timeline add up, then save the brief." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="%VITE_SITE_URL%start/" />
     <meta property="og:image" content="%VITE_SITE_URL%og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Marque, a brand and marketing studio for small businesses." />
+    <meta property="og:image:alt" content="Marque, a brand and website studio for founders." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Start a project: price your brief, Marque studio" />
+    <meta name="twitter:title" content="Start a project, Marque" />
     <meta name="twitter:description" content="Pick the services you need and watch the one-time and monthly prices, the first-project discount and the 1 to 3 day timeline add up, then save the brief." />
     <meta name="twitter:image" content="%VITE_SITE_URL%og.png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>
-    <script type="module" src="/main.ts"></script>
-    <noscript>
-      <style>
-        [data-header] { position: sticky; }
-        body { padding-top: 0; }
-        [data-menu-button] { display: none; }
-        @media (max-width: 63.99rem) {
-          [data-header] > div { flex-wrap: wrap; height: auto; padding-block: 0.5rem; }
-          [data-header] nav { order: 3; width: 100%; }
-          [data-menu] { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 0 1.25rem; padding: 0; border: 0; }
-          [data-menu] a { min-height: 44px; border: 0; font-size: 1rem; }
-        }
-      </style>
-    </noscript>
+    <!-- include:head -->
   </head>
   <body>
     <!-- include:header current="start" -->
@@ -50,35 +36,34 @@
         </div>
       </section>
 
-      <section class="wrap pt-[clamp(3rem,2rem+3vw,5rem)]" id="builder" aria-labelledby="builder-title" data-builder data-empty data-reveal>
+      <section class="wrap pt-[clamp(3rem,2rem+3vw,5rem)]" id="builder" aria-labelledby="builder-title" data-builder data-empty data-first data-reveal>
         <div class="ruler" aria-hidden="true"></div>
         <div class="grid-page gap-y-8 pt-6">
           <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true">01</p>
           <div class="col-span-4 md:col-span-12 lg:col-span-10">
-            <h2 id="builder-title">Project builder</h2>
+            <h2 id="builder-title">Build your project brief</h2>
             <p class="mt-4 max-w-[38rem] text-graphite">Tick a service to add it. Changing an option, like the number of pages, adds that service too.</p>
+            <p class="mt-3 hidden in-data-first:block"><span class="offer">First project, 15% off</span></p>
             <noscript><p class="mt-3 max-w-[38rem] font-[560]">The builder needs JavaScript to add up the prices. Each row shows its starting price. The form below needs JavaScript too, so it can’t be sent without it.</p></noscript>
           </div>
 
           <ul class="col-span-4 border-b border-rule md:col-span-12 lg:col-span-6 lg:col-start-3" data-builder-rows>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="identity">
-              <input class="check mt-1.5" type="checkbox" id="pick-identity" data-pick aria-describedby="identity-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-identity">Brand identity</label>
-                  <p class="tabular font-[560]">from $390 <span class="font-normal text-graphite">one-time</span></p>
-                </div>
+            <li class="service-row py-6" data-service="identity">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-identity" data-pick aria-describedby="identity-desc" />Brand identity</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from <span class="hidden in-data-first:inline"><s class="price-was"><span class="sr-only">Regular price </span>$390</s> <span class="price-now"><span class="sr-only">first-project price </span>$331</span></span><span class="in-data-first:hidden">$390</span> <span class="font-normal text-graphite">one-time</span></p>
+              </div>
+              <div class="pl-10">
                 <p class="mt-1 text-graphite" id="identity-desc">Logo files, colours, type and a short guidelines PDF, with two rounds of changes. 1 to 3 days.</p>
               </div>
             </li>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="website">
-              <input class="check mt-1.5" type="checkbox" id="pick-website" data-pick aria-describedby="website-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-website">Website</label>
-                  <p class="tabular font-[560]">from $690 <span class="font-normal text-graphite">one-time</span></p>
-                </div>
-                <p class="mt-1 text-graphite" id="website-desc">Design and build, up to 6 pages, then $60 for each page after that, with two rounds of changes. 1 to 3 days once your text and photos are in.</p>
+            <li class="service-row py-6" data-service="website">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-website" data-pick aria-describedby="website-desc" />Website</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from <span class="hidden in-data-first:inline"><s class="price-was"><span class="sr-only">Regular price </span>$690</s> <span class="price-now"><span class="sr-only">first-project price </span>$586</span></span><span class="in-data-first:hidden">$690</span> <span class="font-normal text-graphite">one-time</span></p>
+              </div>
+              <div class="pl-10">
+                <p class="mt-1 text-graphite" id="website-desc">Design and build, up to 6 pages, then each page after that is $60 ($51 on your first project), with two rounds of changes. 1 to 3 days once your text and photos are in.</p>
                 <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <span class="text-sm font-[560]" id="pages-label">Pages</span>
                   <div class="stepper" role="group" aria-labelledby="pages-label">
@@ -94,17 +79,16 @@
                     <label><input type="radio" name="after-launch" value="managed" checked /><span>Managed</span></label>
                     <label><input type="radio" name="after-launch" value="handover" /><span>Handed over</span></label>
                   </div>
-                  <p class="mt-2 max-w-[34rem] text-sm text-graphite" id="after-launch-desc">Managed is $39 a month: we host the site on a free Marque subdomain or a domain you own, with SSL, backups, updates, SEO setup and up to an hour of edits a month. Cancel any time and take the code. Handed over has no monthly fee: you get the code and a deploy guide, and set up hosting yourself. Domains aren’t included.</p>
+                  <p class="mt-2 max-w-[34rem] text-sm text-graphite" id="after-launch-desc">Managed is $39 a month: we host the site on a free Marque subdomain or a domain you own, with daily backups, monitoring, security updates, SEO setup and up to an hour of edits a month. Cancel any time and take the code. Handed over has no monthly fee: you get the code and a deploy guide, and set up hosting yourself. Domains aren’t included.</p>
                 </fieldset>
               </div>
             </li>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="social">
-              <input class="check mt-1.5" type="checkbox" id="pick-social" data-pick aria-describedby="social-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-social">Social media management</label>
-                  <p class="tabular font-[560]">from $290 <span class="font-normal text-graphite">a month</span></p>
-                </div>
+            <li class="service-row py-6" data-service="social">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-social" data-pick aria-describedby="social-desc" />Social media management</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from $290 <span class="font-normal text-graphite">a month</span></p>
+              </div>
+              <div class="pl-10">
                 <p class="mt-1 text-graphite" id="social-desc">12 posts a month on 1 platform from a calendar you approve, and same-day replies. 2 platforms $390; each one after that $100.</p>
                 <div class="mt-4 flex flex-wrap gap-x-8 gap-y-4">
                   <fieldset>
@@ -127,23 +111,21 @@
                 </div>
               </div>
             </li>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="ads">
-              <input class="check mt-1.5" type="checkbox" id="pick-ads" data-pick aria-describedby="ads-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-ads">Ads management</label>
-                  <p class="tabular font-[560]">from $250 <span class="font-normal text-graphite">a month</span></p>
-                </div>
-                <p class="mt-1 text-graphite" id="ads-desc">Meta and Google ads, set up, run and reported monthly. You pay the ad spend to Meta or Google directly.</p>
+            <li class="service-row py-6" data-service="ads">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-ads" data-pick aria-describedby="ads-desc" />Ads management</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from $250 <span class="font-normal text-graphite">a month</span></p>
+              </div>
+              <div class="pl-10">
+                <p class="mt-1 text-graphite" id="ads-desc">Meta and Google ads. Set up, run and reported monthly. Ad spend is billed separately.</p>
               </div>
             </li>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="photo">
-              <input class="check mt-1.5" type="checkbox" id="pick-photo" data-pick aria-describedby="photo-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-photo">Photo and video</label>
-                  <p class="tabular font-[560]">from $290 <span class="font-normal text-graphite">per shoot</span></p>
-                </div>
+            <li class="service-row py-6" data-service="photo">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-photo" data-pick aria-describedby="photo-desc" />Photo and video</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from <span class="hidden in-data-first:inline"><s class="price-was"><span class="sr-only">Regular price </span>$290</s> <span class="price-now"><span class="sr-only">first-project price </span>$246</span></span><span class="in-data-first:hidden">$290</span> <span class="font-normal text-graphite">per shoot</span></p>
+              </div>
+              <div class="pl-10">
                 <p class="mt-1 text-graphite" id="photo-desc">A half-day with a local photographer we brief and book: 20 edited photos or 3 short videos, 1 to 3 days after the shoot.</p>
                 <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <span class="text-sm font-[560]" id="shoots-label">Shoots</span>
@@ -156,13 +138,12 @@
                 </div>
               </div>
             </li>
-            <li class="service-row grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 py-6" data-service="print">
-              <input class="check mt-1.5" type="checkbox" id="pick-print" data-pick aria-describedby="print-desc" />
-              <div>
-                <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-                  <label class="cursor-pointer text-h3 font-[560]" for="pick-print">Menu, signage and print</label>
-                  <p class="tabular font-[560]">from $90 <span class="font-normal text-graphite">per piece</span></p>
-                </div>
+            <li class="service-row py-6" data-service="print">
+              <div class="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-4">
+                <label class="flex min-h-11 cursor-pointer items-center gap-4 text-h3 font-[560]"><input class="check" type="checkbox" id="pick-print" data-pick aria-describedby="print-desc" />Menu, signage and print</label>
+                <p class="tabular pl-10 font-[560] sm:pl-0">from <span class="hidden in-data-first:inline"><s class="price-was"><span class="sr-only">Regular price </span>$90</s> <span class="price-now"><span class="sr-only">first-project price </span>$76</span></span><span class="in-data-first:hidden">$90</span> <span class="font-normal text-graphite">per piece</span></p>
+              </div>
+              <div class="pl-10">
                 <p class="mt-1 text-graphite" id="print-desc">One menu, sign, flyer or packaging design, with print-ready files. Printing is paid to your printer. 1 to 3 days.</p>
                 <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <span class="text-sm font-[560]" id="pieces-label">Pieces</span>
@@ -180,12 +161,9 @@
           <div class="col-span-4 md:col-span-12 lg:col-span-4">
             <aside class="border border-ink bg-sheet p-5 sm:p-6 lg:sticky lg:top-[calc(var(--spacing-header)+1.5rem)]" id="summary" aria-labelledby="summary-title">
               <h2 class="text-h3" id="summary-title">Your estimate</h2>
-              <div class="mt-4 flex gap-3 border-t border-ink pt-3">
-                <input class="check mt-0.5" type="checkbox" id="first-project" checked data-first-project aria-describedby="first-project-desc" />
-                <div>
-                  <label class="cursor-pointer font-[560]" for="first-project">My first project with Marque</label>
-                  <p class="text-sm text-graphite" id="first-project-desc">15% off the one-time work. Monthly work stays at the regular price.</p>
-                </div>
+              <div class="mt-4 border-t border-ink pt-3">
+                <label class="flex min-h-11 cursor-pointer items-center gap-3 font-[560]"><input class="check" type="checkbox" id="first-project" checked data-first-project aria-describedby="first-project-desc" />My first project with Marque</label>
+                <p class="mt-1 pl-9 text-sm text-graphite" id="first-project-desc">15% off each one-time service, rounded in your favour; monthly work stays at the regular price.</p>
               </div>
               <ul class="mt-3 text-sm">
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="identity"><span data-line-label data-name="Brand identity">Brand identity</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
@@ -193,17 +171,17 @@
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="managed"><span data-line-label data-name="Managed hosting">Managed hosting</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="photo"><span data-line-label data-name="Photo and video">Photo and video</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="print"><span data-line-label data-name="Menu, signage and print">Menu, signage and print</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
-                <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="discount" data-off="Not applied"><span data-line-label data-name="First-project discount">First-project discount</span><span class="tabular flex-none" data-line-amount>Not applied</span></li>
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="social"><span data-line-label data-name="Social media">Social media</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
                 <li class="flex justify-between gap-4 border-t border-rule py-2 text-graphite data-on:text-ink" data-line="ads"><span data-line-label data-name="Ads management">Ads management</span><span class="tabular flex-none" data-line-amount>Not included</span></li>
               </ul>
+              <p class="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-rule py-3 text-sm" data-savings><span class="offer">First project, 15% off</span><span class="price-now font-[560]">You save <span data-savings-amount>$0</span> on your first project</span></p>
               <dl class="tabular border-t border-ink">
-                <div class="flex items-baseline justify-between gap-4 border-b border-rule py-3"><dt class="flex-none text-graphite">One-time</dt><dd class="text-right"><span class="block text-figure leading-tight font-[560] tracking-[-0.02em]" data-total="oneTime">$0</span><span class="block text-sm text-graphite" data-regular-note hidden></span></dd></div>
+                <div class="flex items-baseline justify-between gap-4 border-b border-rule py-3"><dt class="flex-none text-graphite">One-time</dt><dd class="text-right"><s class="price-was text-sm" data-total-regular hidden><span class="sr-only">Regular price </span><span data-figure>$0</span></s> <span class="text-figure leading-tight font-[560] tracking-[-0.02em]" data-total="oneTime">$0</span></dd></div>
                 <div class="flex items-baseline justify-between gap-4 border-b border-rule py-3"><dt class="text-graphite">Monthly</dt><dd class="text-figure leading-tight font-[560] tracking-[-0.02em]" data-total="monthly">$0</dd></div>
                 <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-graphite">Timeline</dt><dd class="text-right text-lead font-[560]" data-total="days">Pick a service</dd></div>
               </dl>
               <p class="text-sm text-graphite" data-late-note>Ready by day 3, or $5 off for each day late, up to the price of that service.</p>
-              <p class="mt-2 text-sm text-graphite">These are starting prices. You get one fixed price in writing after the first call.</p>
+              <p class="mt-2 text-sm text-graphite">15% off each one-time service on your first project, rounded to the dollar in your favour. These are starting prices; you get one fixed price in writing after the first call.</p>
               <div class="mt-5 flex flex-wrap gap-2">
                 <button class="button flex-1 basis-40" type="button" data-use-brief>Use this brief</button>
                 <button class="button button--outline flex-1 basis-32" type="button" data-save-brief>Save brief</button>
@@ -213,11 +191,11 @@
             </aside>
           </div>
 
-          <div class="fixed inset-x-0 bottom-0 z-10 border-t border-ink bg-paper lg:hidden" data-builder-bar hidden>
-            <div class="wrap flex items-center justify-between gap-4 py-2.5">
-              <p class="tabular text-sm"><span class="block text-graphite">One-time</span><span class="text-lead font-[560]" data-total="oneTime">$0</span></p>
-              <p class="tabular text-sm"><span class="block text-graphite">Monthly</span><span class="text-lead font-[560]" data-total="monthly">$0</span></p>
-              <a class="button button--outline min-h-11 px-3 text-sm" href="#summary">See estimate</a>
+          <div class="fixed inset-x-0 bottom-0 z-10 border-t border-ink bg-paper lg:hidden max-md:[html:has(&)]:scroll-pb-28 max-sm:[html:has(&)]:scroll-pb-40" data-builder-bar hidden>
+            <div class="wrap flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-2.5">
+              <p class="tabular text-sm max-sm:basis-full"><span class="text-graphite">One-time</span> <span class="whitespace-nowrap"><s class="price-was" data-total-regular hidden><span class="sr-only">Regular price </span><span data-figure>$0</span></s> <span class="text-lead font-[560]" data-total="oneTime">$0</span> <span class="offer-pill" data-savings>First project</span></span></p>
+              <p class="tabular text-sm"><span class="text-graphite">Monthly</span> <span class="text-lead font-[560]" data-total="monthly">$0</span></p>
+              <a class="button button--outline min-h-11 px-3 text-sm whitespace-nowrap max-sm:basis-full sm:flex-none" href="#summary">See estimate</a>
             </div>
           </div>
         </div>
@@ -235,19 +213,19 @@
           <form class="col-span-4 grid gap-6 md:col-span-12 md:grid-cols-2 lg:col-span-6 lg:col-start-7" novalidate>
             <div>
               <label class="font-[560]" for="contact-name">Your name</label>
-              <input class="field mt-1.5" id="contact-name" name="name" type="text" autocomplete="name" maxlength="80" required />
+              <input class="field mt-1.5" id="contact-name" name="name" type="text" autocomplete="name" maxlength="60" required />
               <p class="field-error" id="contact-name-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
             </div>
             <div>
               <label class="font-[560]" for="contact-business">Business name</label>
-              <input class="field mt-1.5" id="contact-business" name="business" type="text" autocomplete="organization" maxlength="80" required />
+              <input class="field mt-1.5" id="contact-business" name="business" type="text" autocomplete="organization" maxlength="60" required />
               <p class="field-error" id="contact-business-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
             </div>
             <div class="md:col-span-2">
-              <label class="font-[560]" for="contact-reply">Email address</label>
-              <p class="mt-0.5 text-sm text-graphite" id="contact-reply-hint">Where we send our reply</p>
-              <input class="field mt-1.5" id="contact-reply" name="reply" type="text" autocomplete="email" maxlength="80" required aria-describedby="contact-reply-hint" />
-              <p class="field-error" id="contact-reply-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+              <label class="font-[560]" for="contact-email">Email address</label>
+              <p class="mt-0.5 text-sm text-graphite" id="contact-email-hint">Where we send our reply</p>
+              <input class="field mt-1.5" id="contact-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="contact-email-hint" />
+              <p class="field-error" id="contact-email-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
             </div>
             <div class="md:col-span-2">
               <label class="font-[560]" for="contact-message">Message</label>

@@ -1,7 +1,7 @@
 {
   "name": "marque",
   "version": "1.0.0",
-  "description": "Marque, a concept brand and marketing studio for small businesses: a multi-page website with starting prices, a project builder and a client sign-in.",
+  "description": "Marque, a small brand and website studio for founders: a multi-page website with starting prices, a project builder and a client sign-in.",
   "type": "module",
   "private": true,
   "license": "MIT",

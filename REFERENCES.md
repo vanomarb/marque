@@ -14,22 +14,18 @@ The full licence text ships with the package in `node_modules/@fontsource-variab
 
 [Phosphor Icons](https://phosphoricons.com/) (`@phosphor-icons/core`), MIT License. Copyright 2023 Phosphor Icons. Inlined as SVG at build time.
 
+## Styles
+
+[Tailwind CSS](https://tailwindcss.com/), MIT License.
+
 ## Work shown
 
-The Works pages show screenshots of Usual, Bayline and Enamel, the studio's own sites from the same set. The photographs in them are credited in each site's own `REFERENCES.md`.
+The Works pages show screenshots of the studio's own sites. Third-party material in them:
 
-The project thumbnails on Home and Works (`public/work/*-cover-*.webp` and `*-card-*.webp`) are drawn from those screenshots and two of the sites' photos:
-
-| Photo | In | Author and source | Licence | Changes |
-|---|---|---|---|---|
-| Spanish latte | Usual | Generated for Usual (see its `REFERENCES.md`) | Usual's own | cropped to a circle |
-| A sedan covered in soap in a wash bay | Bayline | Khunkorn Laowisit, [Pexels 5233271](https://www.pexels.com/photo/using-soap-in-washing-a-car-5233271/) | [Pexels License](https://www.pexels.com/license/) | cropped, turned to a red duotone, cut on a diagonal |
-
-They also use each site's own mark and fonts, all under the SIL Open Font License 1.1:
-
-| Font | In | Source |
-|---|---|---|
-| Hanken Grotesk | Usual | [github.com/marcologous/hanken-grotesk](https://github.com/marcologous/hanken-grotesk) |
-| Saira | Bayline | [github.com/Omnibus-Type/Saira](https://github.com/Omnibus-Type/Saira) |
-| Newsreader | Enamel | [github.com/productiontype/Newsreader](https://github.com/productiontype/Newsreader) |
-| Atkinson Hyperlegible Next | Enamel | [github.com/googlefonts/atkinson-hyperlegible-next](https://github.com/googlefonts/atkinson-hyperlegible-next) |
+| Item | In | Author and source | Licence |
+|---|---|---|---|
+| Sedan covered in soap in a wash bay | Bayline | Khunkorn Laowisit, [Pexels 5233271](https://www.pexels.com/photo/using-soap-in-washing-a-car-5233271/) | [Pexels License](https://www.pexels.com/license/) |
+| Hanken Grotesk | Usual | [github.com/marcologous/hanken-grotesk](https://github.com/marcologous/hanken-grotesk) | SIL Open Font License 1.1 |
+| Saira | Bayline | [github.com/Omnibus-Type/Saira](https://github.com/Omnibus-Type/Saira) | SIL Open Font License 1.1 |
+| Newsreader | Enamel | [github.com/productiontype/Newsreader](https://github.com/productiontype/Newsreader) | SIL Open Font License 1.1 |
+| Atkinson Hyperlegible Next | Enamel | [github.com/googlefonts/atkinson-hyperlegible-next](https://github.com/googlefonts/atkinson-hyperlegible-next) | SIL Open Font License 1.1 |

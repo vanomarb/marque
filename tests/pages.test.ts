@@ -1,16 +1,23 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { JSDOM } from 'jsdom'
 import { includePartials } from '../build/partials.ts'
 import { dollars } from '../app/lib/format.ts'
-import { DEFAULT_SOCIAL, LATE_TEXT, MANAGED_LABEL, PRICE, SERVICES, estimate, firstProjectPrice, formatDays } from '../app/lib/estimate.ts'
-import { WORKS, neighbours, sortWorks, type WorkId } from '../app/lib/works.ts'
-import { LAUNCH_SET } from '../app/lib/start-link.ts'
+import { DEFAULT_SOCIAL, FIRST_PROJECT_LABEL, LATE_TEXT, MANAGED_LABEL, PLANS, PRICE, SERVICES, estimate, firstProjectPrice, formatDays, savingsText } from '../app/lib/estimate.ts'
+import { WORKS, sortWorks, type Work, type WorkId } from '../app/lib/works.ts'
+import { SAMPLE_QUOTES, SAMPLE_STATS } from '../app/lib/samples.ts'
 import { EMAIL } from '../app/lib/account.ts'
 import { BASE, leftoverPlaceholders } from '../build/site.ts'
+import { read } from './harness.ts'
 
 const root = new URL('../', import.meta.url)
-const read = (path: string) => readFileSync(new URL(path, root), 'utf8')
+const LAUNCH_SET = PLANS.find((plan) => plan.id === 'launch')!.selection
+/** The project before and after this one, going round WORKS in launch order: what each page's pager must link. */
+function neighbours(id: WorkId): { previous: Work; next: Work } {
+  const at = WORKS.findIndex((w) => w.id === id)
+  return { previous: WORKS[(at + WORKS.length - 1) % WORKS.length], next: WORKS[(at + 1) % WORKS.length] }
+}
 
 const PAGES = [
   { id: 'home', path: '' },
@@ -19,6 +26,7 @@ const PAGES = [
   { id: 'bayline', path: 'works/bayline/' },
   { id: 'enamel', path: 'works/enamel/' },
   { id: 'services', path: 'services/' },
+  { id: 'pricing', path: 'pricing/' },
   { id: 'studio', path: 'studio/' },
   { id: 'start', path: 'start/' },
   { id: 'account', path: 'account/' },
@@ -30,7 +38,7 @@ const PAGES = [
 type PageId = (typeof PAGES)[number]['id']
 const WORK_PAGES = ['usual', 'bayline', 'enamel'] as const satisfies readonly WorkId[]
 /** The pages the header links to; a project page marks Works as current. */
-const NAV_PAGES: PageId[] = ['home', 'works', 'services', 'studio', 'start', 'account']
+const NAV_PAGES: PageId[] = ['home', 'works', 'services', 'pricing', 'studio', 'start', 'account']
 const HEADER_PAGES: PageId[] = [...NAV_PAGES, ...WORK_PAGES]
 const FOOTER_PAGES: PageId[] = ['terms', 'privacy', 'cookies', 'accessibility']
 const currentOf = (id: PageId): string => ((WORK_PAGES as readonly string[]).includes(id) ? 'works' : id)
@@ -38,7 +46,7 @@ const currentOf = (id: PageId): string => ((WORK_PAGES as readonly string[]).inc
 const LIVE_SITES = { usual: '/usual/', bayline: '/bayline/', enamel: '/enamel/' }
 
 /** raw keeps %BASE_URL%; partials are filled the way the build fills them. */
-const raw = { header: read('app/components/header.html'), footer: read('app/components/footer.html') }
+const raw = { head: read('app/components/head.html'), header: read('app/components/header.html'), footer: read('app/components/footer.html') }
 const partials = { header: includePartials(raw.header, raw, BASE), footer: includePartials(raw.footer, raw, BASE) }
 const source = Object.fromEntries(PAGES.map((page) => [page.id, read(`app/${page.path}index.html`)])) as Record<PageId, string>
 const built = Object.fromEntries(PAGES.map((page) => [page.id, includePartials(source[page.id], raw, BASE)])) as Record<PageId, string>
@@ -48,7 +56,9 @@ const count = (html: string, text: string) => html.split(text).length - 1
 const meta = (html: string, attribute: 'name' | 'property', key: string) => html.match(new RegExp(`<meta ${attribute}="${key}" content="([^"]*)"`))?.[1]
 const mainOf = (html: string) => html.match(/<main id="main"[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? ''
 /** What Managed hosting includes, in the words Home and Services both use. */
-const MANAGED_INCLUDES = ['free Marque subdomain', 'a domain you own', 'Automatic SSL and a global CDN', 'Automatic deploys and daily backups', 'Uptime monitoring and security updates', 'Search Console', 'Up to an hour of edits a month']
+const MANAGED_INCLUDES = ['free Marque subdomain', 'a domain you own', 'Daily backups', 'Uptime monitoring and security updates', 'Search Console', 'Up to an hour of edits a month']
+/** A struck regular price with its first-project price beside it, as every page and script writes the pair. */
+const pair = (regular: number, first: number) => new RegExp(`Regular price </span>${escape(dollars(regular))}</s> <span class="price-now[^"]*"><span class="sr-only">first-project price </span>${escape(dollars(first))}</span>`)
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const JS_MARK = `<script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>`
 const footerOf = (html: string) => html.match(/<footer[\s>][\s\S]*?<\/footer>/)?.[0] ?? ''
@@ -128,7 +138,8 @@ test('every page has its own title, description and canonical, and stays out of 
     assert.equal(meta(html, 'name', 'twitter:image'), '%VITE_SITE_URL%og.png', `${page.id}: twitter image`)
     assert.match(meta(html, 'name', 'theme-color') ?? '', /^oklch\(/, `${page.id}: theme-color`)
     assert.ok(html.includes('<link rel="icon" href="/favicon.svg" type="image/svg+xml" />'), `${page.id}: favicon`)
-    assert.ok(html.includes('<script type="module" src="/main.ts"></script>'), `${page.id}: script`)
+    assert.equal(count(html, '<!-- include:head -->'), 1, `${page.id}: the shared end of the head`)
+    assert.ok(built[page.id].includes('<script type="module" src="/main.ts"></script>'), `${page.id}: script`)
     assert.ok(html.includes('<html lang="en">'), `${page.id}: language`)
   }
   assert.equal(titles.size, PAGES.length, 'titles are unique')
@@ -146,7 +157,9 @@ test('every page takes the shared header and footer, and exactly its own link is
     assert.doesNotMatch(html, /<!-- include:/, `${page.id}: markers replaced`)
     // The header links its pages twice, from the bar and the phone menu, and marks both.
     const current = [...html.matchAll(/<a [^>]*data-page="([a-z-]+)" aria-current="page"/g)].map((m) => m[1])
-    assert.deepEqual(current, Array(HEADER_PAGES.includes(page.id) ? 2 : 1).fill(currentOf(page.id)), `${page.id}: its own links, and only those, are current`)
+    // The bar and the phone menu both link a header page, except Start a project, which only the menu sheet holds.
+    const links = HEADER_PAGES.includes(page.id) && page.id !== 'start' ? 2 : 1
+    assert.deepEqual(current, Array(links).fill(currentOf(page.id)), `${page.id}: its own links, and only those, are current`)
     assert.equal(count(html, '<main id="main"'), 1, `${page.id}: main`)
     assert.equal(count(html, '<h1'), 1, `${page.id}: one h1`)
   }
@@ -162,6 +175,7 @@ test('the header reaches the main pages; the footer has Company, Help and Legal,
   assert.deepEqual([...column('Company').matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]+)</g)].map((m) => [m[1], m[2]]), [
     ['/marque/studio/', 'Studio'],
     ['/marque/works/', 'Works'],
+    ['/marque/pricing/', 'Pricing'],
     ['/marque/start/#contact', 'Contact'],
   ])
   assert.deepEqual([...column('Help').matchAll(/<a [^>]*href="([^"]+)"[^>]*>([^<]+)</g)].map((m) => [m[1], m[2]]), [
@@ -173,13 +187,13 @@ test('the header reaches the main pages; the footer has Company, Help and Legal,
     ['/marque/privacy/', 'Privacy Policy'],
     ['/marque/cookies/', 'Cookie Policy'],
   ])
-  assert.match(partials.footer, /<form [^>]*data-mock-form="newsletter"/, 'footer: newsletter')
-  assert.ok(partials.footer.includes('Within a day, any day'), 'footer: replies')
+  assert.match(partials.footer, /<form [^>]*data-newsletter[ >]/, 'footer: newsletter')
+  assert.ok(partials.footer.includes('By email, usually within a day'), 'footer: replies')
   assert.ok(partials.footer.includes('On a call, in your time zone'), 'footer: meetings')
 })
 
 test('an include for a page the partials do not know fails the build', () => {
-  assert.throws(() => includePartials('<!-- include:header current="pricing" -->', raw, BASE), /pricing/)
+  assert.throws(() => includePartials('<!-- include:header current="blog" -->', raw, BASE), /blog/)
   assert.throws(() => includePartials('<!-- include:footer current="careers" -->', raw, BASE), /careers/)
 })
 
@@ -203,7 +217,7 @@ test('Marque is a real studio: no page, partial or script calls it a concept or 
 test('where nothing is sent yet, the page says so plainly', () => {
   assert.match(mainOf(source.start), /Sending isn’t connected yet\./, 'the contact form')
   assert.match(read('app/start/contact.ts'), /sending isn’t connected yet/, 'the contact form after a send')
-  assert.match(read('app/shared/forms.ts'), /Sign-up isn’t connected yet/, 'the newsletter')
+  assert.match(read('app/shared/newsletter.ts'), /Sign-up isn’t connected yet/, 'the newsletter')
   assert.match(mainOf(source.account), /Emails aren’t sent yet, so your code shows here\./, 'the sign-in code')
   assert.match(read('app/account/account.ts'), /Google sign-in isn’t connected yet/, 'Continue with Google')
   for (const id of ['terms', 'privacy'] as const) assert.match(mainOf(source[id]), /What isn’t connected yet/, `${id}: what isn’t connected`)
@@ -214,7 +228,7 @@ test('there is no password field anywhere, only an email address and an on-scree
   const account = mainOf(source.account)
   assert.ok(source.account.includes('<main id="main" data-account>'), 'account feature')
   assert.match(account, /<input [^>]*name="first-name"/, 'first name, for a new account')
-  assert.match(account, /<input [^>]*name="contact" type="email" autocomplete="email"/, 'email address')
+  assert.match(account, /<input [^>]*name="email" type="email" autocomplete="email"/, 'email address')
   assert.match(account, /<input [^>]*autocomplete="one-time-code"/, 'one-time code')
   assert.ok(account.includes('data-preview-code'), 'the code is shown on screen, as a preview')
   assert.ok(account.includes('data-briefs'), 'Your briefs')
@@ -230,7 +244,7 @@ test('the builder and the contact form are on Start a project only, and the form
   const start = mainOf(source.start)
   assert.ok(start.includes('id="builder"') && start.includes('id="contact"'), 'sections to link to')
   for (const service of SERVICES) assert.ok(start.includes(`data-service="${service.id}"`), `builder row: ${service.id}`)
-  for (const name of ['name', 'business', 'reply', 'message']) assert.match(start, new RegExp(`<(?:input|textarea) [^>]*name="${name}"`), `contact field: ${name}`)
+  for (const name of ['name', 'business', 'email', 'message']) assert.match(start, new RegExp(`<(?:input|textarea) [^>]*name="${name}"`), `contact field: ${name}`)
   assert.ok(start.includes('data-use-brief') && start.includes('data-save-brief'), 'Use this brief and Save brief')
   assert.equal(count(start, 'aria-live="polite"') >= 2, true, 'builder and form announce changes')
 })
@@ -243,10 +257,18 @@ test('Home markets the studio with its own work and prices and links on', () => 
     assert.ok(!home.includes(`href="${url}"`), `${site}: the live site is opened from the case study, not from Home`)
   }
   const launch = estimate(LAUNCH_SET)
-  assert.ok(home.includes('href="/marque/start/?set=launch"'), 'the launch set opens in the builder')
-  assert.ok(home.includes(dollars(launch.oneTime)) && home.includes(formatDays(launch.days)), 'the launch set in real prices and days')
-  assert.ok(home.includes(`<s class="price-was text-h3"><span class="sr-only">regular price </span>${dollars(launch.oneTime + launch.discount)}</s>`), 'its regular price struck through beside it')
-  assert.match(home, /Day 3, or money off/, 'the late-day credit')
+  assert.ok(home.includes('href="/marque/start/?set=launch"'), 'the Launch plan opens in the builder')
+  assert.ok(home.includes(dollars(launch.oneTime)) && home.includes(formatDays(launch.days)), 'the Launch plan in real prices and days')
+  const receipt = home.match(/<figure [^>]*aria-labelledby="receipt-title"[\s\S]*?<\/figure>/)?.[0] ?? ''
+  assert.ok(receipt, 'the hero shows the product: the Launch plan as a builder receipt')
+  for (const line of launch.lines) {
+    if (line.regular) assert.match(receipt, pair(line.regular, line.amount), `receipt: ${line.id} at its regular and first-project price`)
+    else assert.ok(receipt.includes(`${dollars(line.amount)} a month`), `receipt: ${line.id}, monthly, never discounted`)
+  }
+  assert.ok(receipt.includes(savingsText(launch.discount)), 'receipt: the savings, in one figure')
+  assert.match(receipt, pair(launch.oneTimeRegular, launch.oneTime), 'receipt: the total struck and discounted')
+  assert.ok(receipt.includes(LATE_TEXT) && receipt.includes('href="/marque/start/?set=launch"'), 'receipt: the promise with its cap, and the way into the builder')
+  assert.ok(home.includes('>Ready by day 3, or $5 off</dt>'), 'the late-day credit, by the figure')
   assert.ok(home.includes(`${dollars(PRICE.managed)} a month`), 'what running the site costs after launch')
   const hosting = home.match(/<h3[^>]*>What Managed hosting includes, for \$39 a month<\/h3>[\s\S]*?<\/ul>/)?.[0] ?? ''
   for (const item of MANAGED_INCLUDES) assert.ok(hosting.includes(item), `Managed hosting: ${item}`)
@@ -255,13 +277,15 @@ test('Home markets the studio with its own work and prices and links on', () => 
     assert.ok(row, `${service.id}: teaser row links to Services`)
     assert.ok(row.includes(`>${service.name}<`) && row.includes(dollars(service.from)), `${service.id}: name and starting price`)
     assert.equal(row.includes('<s '), service.unit !== 'a month', `${service.id}: a first-project price only on one-time work`)
-    if (service.unit !== 'a month') assert.ok(row.includes(`${dollars(service.from)}</s> <span class="sr-only">first-project price </span>${dollars(firstProjectPrice(service.from))}`), `${service.id}: the regular price struck beside the first-project price`)
+    if (service.unit !== 'a month') assert.match(row, pair(service.from, firstProjectPrice(service.from)), `${service.id}: the regular price struck beside the first-project price`)
   }
   for (const n of ['01', '02', '03', '04', '05', '06']) assert.ok(home.includes(`>${n}</`), `section ${n} in the margin`)
   assert.ok(count(home, 'data-step') >= 4, 'how we work, step by step')
   assert.ok(home.includes('href="/marque/start/"'), 'a closing call to start a project')
+  // The built page, less the sample blocks, which stand in for client results by the owner's choice (see BACKEND.md).
   for (const id of ['home', 'works', ...WORK_PAGES] as const) {
-    assert.doesNotMatch(mainOf(source[id]), /\b\d[\d,]*\+? (?:happy |satisfied )?(?:clients|customers|brands|projects|reviews)\b|★|\bstars?\b|award|trusted by|testimonial|\d+\s?%(?! off)|increase|grew|growth|revenue|sales up|conversion/i, `${id}: no invented proof`)
+    const ownWords = mainOf(built[id]).replace(/<div data-samples="(?:stats|quotes)">[\s\S]*?<\/(?:dl|ul)><\/div>/g, '')
+    assert.doesNotMatch(ownWords, /\b\d[\d,]*\+? (?:happy |satisfied )?(?:clients|customers|brands|projects|reviews)\b|★|\bstars?\b|award|trusted by|testimonial|\d+\s?%(?! off)|increase|grew|growth|revenue|sales up|conversion/i, `${id}: no invented proof outside the sample blocks`)
   }
 })
 
@@ -341,7 +365,7 @@ test('each project has its own page, led by its own colour and mark, with screen
     for (const heading of ['The brief', 'What we did', 'What we made']) assert.ok(page.includes(`>${heading}</h2>`), `${site}: ${heading}`)
     assert.match(page, /<dt[^>]*>Timeline<\/dt>/, `${site}: services and timeline`)
     assert.ok(page.includes(`href="${LIVE_SITES[site]}" target="_blank" rel="noopener">Open ${work.name}<span class="sr-only"> (opens in a new tab)</span>`), `${site}: opens the live site in a new tab`)
-    assert.ok(page.includes('A Marque studio project.'), `${site}: honest about whose project it is`)
+    assert.ok(page.includes('A Marque studio project: we set the brief ourselves, so there’s no client to quote.'), `${site}: honest about whose project it is`)
     const { previous, next } = neighbours(site)
     assert.ok(page.includes(`href="/marque/works/${previous.id}/" rel="prev"`) && page.includes(`href="/marque/works/${next.id}/" rel="next"`), `${site}: previous and next`)
     assert.match(page, /<nav [^>]*aria-label="Breadcrumb"[\s\S]*?href="\/marque\/works\/"/, `${site}: back to Works`)
@@ -357,8 +381,8 @@ test('Services lists every service with its starting price and time, and links e
     assert.ok(row.includes(`>${service.name}</h2>`), `${service.id}: name`)
     assert.ok(row.includes(dollars(service.from)) && row.includes(service.unit) && row.includes(service.time), `${service.id}: price, unit and time`)
     if (service.unit !== 'a month') {
-      assert.ok(row.includes(`${dollars(service.from)}</s> <span class="sr-only">first-project price </span>${dollars(firstProjectPrice(service.from))}`), `${service.id}: first-project price beside the regular one`)
-      assert.ok(row.includes('Ready by day 3, or $5 off for each day late'), `${service.id}: the late-day credit beside the timeline`)
+      assert.match(row, pair(service.from, firstProjectPrice(service.from)), `${service.id}: first-project price beside the regular one`)
+      assert.ok(row.includes(LATE_TEXT.replace(/\.$/, '')), `${service.id}: the late-day credit, with its cap, beside the timeline`)
     }
     assert.ok(row.includes(`href="/marque/start/?add=${service.id}"`), `${service.id}: into the builder`)
   }
@@ -419,18 +443,18 @@ test('Home’s service rows fill dark on hover with room on both sides, so no te
 test('Studio is the About page: who the studio is, how it works, and where', () => {
   const studio = mainOf(source.studio)
   assert.ok(count(studio, 'data-step') >= 4, 'the process, step by step')
-  assert.ok(studio.includes('Within a day, any day you write') && studio.includes('on a call'), 'replies and meetings')
+  assert.ok(studio.includes('By email, usually within a day') && studio.includes('on a call'), 'replies and meetings')
 })
 
 test('the legal pages read like those of a studio with clients anywhere, and list exactly the keys the code stores', () => {
   const privacy = mainOf(source.privacy)
-  assert.ok(privacy.includes('the data protection law where you live') && privacy.includes('GDPR'), 'the law where the visitor lives')
+  assert.ok(privacy.includes('the data rights that apply where you live') && !privacy.includes('GDPR'), 'the rights where the visitor lives, without naming one country’s law')
   for (const id of ['terms', 'privacy'] as const) assert.doesNotMatch(mainOf(source[id]), /Philippine|Republic Act|National Privacy Commission/, `${id}: no single country's law`)
   assert.match(mainOf(source.cookies), /no cookies/i, 'no cookies')
   for (const id of ['terms', 'privacy', 'cookies', 'accessibility'] as const) assert.ok(mainOf(source[id]).includes('Last updated'), `${id}: dated`)
   const terms = mainOf(source.terms)
   assert.ok(terms.includes('If we deliver a service after day 3, we take $5 off the final invoice for every day late, up to the price of that service.'), 'Terms: the late-day credit')
-  assert.ok(terms.includes('New clients get 15% off their first one-time project') && terms.includes('One first-project discount per client.'), 'Terms: the first-project discount')
+  assert.ok(terms.includes('New clients get 15% off each one-time service on their first project') && terms.includes('rounded to the dollar in your favour') && terms.includes('One first-project discount per client.'), 'Terms: the first-project discount')
   // The keys as the code defines them (export const …_KEY = 'marque.…'), not a copy kept here.
   const code = productSources().filter(([file]) => /\.(?:ts|css)$/.test(file)).map(([, text]) => text).join('\n')
   const keys = [...code.matchAll(/_KEY = '(marque\.[a-z]+)'/g)].map(([, key]) => key).sort()
@@ -477,7 +501,7 @@ test('every icon is a Phosphor icon in the regular or light weight', () => {
 })
 
 test('without JavaScript, every page keeps the header in the flow and the menu links inline', () => {
-  for (const [id, html] of [...PAGES.map((p) => [p.id, source[p.id]]), ['404', notFound]]) {
+  for (const [id, html] of [...PAGES.map((p) => [p.id, built[p.id]]), ['404', includePartials(notFound, raw, BASE)]]) {
     const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)?.[1] ?? ''
     assert.ok(noscript.includes('[data-header] { position: sticky; }'), `${id}: sticky header`)
     assert.ok(noscript.includes('[data-menu] { position: static;'), `${id}: inline menu links`)
@@ -489,7 +513,7 @@ test('the 404 takes the shared header and footer and points to every main page',
   assert.equal(count(notFound, '<!-- include:header -->'), 1, 'header marker, no current page')
   assert.equal(count(notFound, '<!-- include:footer -->'), 1, 'footer marker')
   assert.doesNotMatch(html, /data-page="[a-z-]+" aria-current="page"/, 'no link is current')
-  assert.ok(notFound.includes('<script type="module" src="/main.ts"></script>'), 'script, so the menu opens')
+  assert.ok(html.includes('<script type="module" src="/main.ts"></script>'), 'script, so the menu opens')
   assert.equal(meta(notFound, 'name', 'robots'), 'noindex')
   assert.ok(!notFound.includes('rel="canonical"'), 'no canonical on a 404')
   assert.equal(meta(notFound, 'property', 'og:title'), notFound.match(/<title>([^<]+)<\/title>/)?.[1])
@@ -502,7 +526,7 @@ test('the 404 takes the shared header and footer and points to every main page',
 })
 
 test('sections reveal on scroll only once the script has marked the page, and the marking undoes itself if scripts fail', () => {
-  for (const [id, html] of [...PAGES.map((p) => [p.id, source[p.id]]), ['404', notFound]]) {
+  for (const [id, html] of [...PAGES.map((p) => [p.id, built[p.id]]), ['404', includePartials(notFound, raw, BASE)]]) {
     const head = html.match(/<head>([\s\S]*?)<\/head>/)?.[1] ?? ''
     assert.ok(head.includes(JS_MARK), `${id}: the js class goes on <html> before the page draws`)
     assert.ok(head.indexOf(JS_MARK) < head.indexOf('<script type="module"'), `${id}: before the module`)
@@ -513,36 +537,42 @@ test('sections reveal on scroll only once the script has marked the page, and th
 test('signed in, the header shows the client’s first name from the first paint', () => {
   const links = [...partials.header.matchAll(/<a [^>]*data-page="account"[\s\S]*?<\/a>/g)].map((m) => m[0])
   assert.equal(links.length, 2, 'the bar’s account link and the phone menu’s')
-  for (const link of links) {
-    assert.ok(link.includes('data-account-name') && link.includes('Sign in'), 'a place for the name, which says Sign in when signed out')
-    assert.match(link, /<span class="sr-only[^"]*">Your briefs, signed in as <\/span>/, 'accessible name says who is signed in')
-  }
+  const [barLink, menuLink] = links
+  assert.ok(barLink.includes('data-account-name') && barLink.includes('>Sign in<'), 'the bar: a place for the short name, Sign in when signed out')
+  assert.match(barLink, /<span class="sr-only[^"]*">Your briefs, signed in as <\/span><span class="sr-only[^"]*" data-account-email><\/span>/, 'its accessible name carries the full address')
+  assert.ok(menuLink.includes('>Sign in<') && menuLink.includes('>Your briefs<') && menuLink.includes('data-account-email'), 'the menu: Your briefs, with the full address under it')
   // On phones the name lives in the menu, so the wordmark keeps its place in the bar.
   const bar = partials.header.slice(0, partials.header.indexOf('<nav'))
   assert.doesNotMatch(bar, /href="\/marque\/account\/"/, 'no account link in the bar')
   assert.ok(bar.includes('<span>Marque</span>'), 'the wordmark is always shown')
 })
 
-test('one inline script marks the signed-in header, after every name it fills, with the same rules as loadSession', () => {
+test('one inline script marks the signed-in header, after every name it fills, with the same rules as readSession', () => {
   const scripts = [...partials.header.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   assert.equal(scripts.length, 1, 'one script')
   const [whole, script] = scripts[0]
   const at = partials.header.indexOf(whole)
-  assert.equal(count(partials.header.slice(0, at), 'data-account-name'), 2, 'after both names it fills')
-  assert.ok(!partials.header.slice(at + whole.length).includes('data-account-name'), 'and before nothing it should fill')
+  assert.equal(count(partials.header.slice(0, at), 'data-account-name'), 1, 'after the bar’s short name')
+  assert.equal(count(partials.header.slice(0, at), 'data-account-email'), 2, 'and both full addresses it fills')
+  for (const hook of ['data-account-name', 'data-account-email']) assert.ok(!partials.header.slice(at + whole.length).includes(hook), `and before nothing it should fill (${hook})`)
   assert.ok(script.includes("localStorage.getItem('marque.account')"), 'reads the session')
   assert.ok(script.includes("setAttribute('data-signed-in'"), 'marks the page')
-  assert.ok(script.includes("querySelectorAll('[data-account-name]')"), 'fills every account link')
-  assert.ok(script.includes(EMAIL.source), 'the email pattern parseContact uses')
-  assert.ok(!/mobile|\\d\{9\}/.test(script), 'email only, like parseContact')
+  assert.ok(script.includes("querySelectorAll('[data-account-name]')"), 'fills the short name')
+  assert.ok(script.includes("querySelectorAll('[data-account-email]')"), 'fills the full address')
+  assert.ok(script.includes(EMAIL.source), 'the email pattern parseEmail uses')
+  assert.ok(!/mobile|\\d\{9\}/.test(script), 'email only, like parseEmail')
   assert.match(script, /length <= 40/, 'the first-name limit validateFirstName uses')
 })
 
-test('the phone menu is a modal dialog that drops from the header: a labelled close, numbered rows, a paper scrim', () => {
+test('the phone menu is a modal dialog that drops from the header: a labelled close, rows, a paper scrim', () => {
   const button = partials.header.match(/<button [^>]*data-menu-button[^>]*>[\s\S]*?<\/button>/)?.[0] ?? ''
   assert.match(button, /aria-controls="site-menu"/, 'the button names the menu it opens')
   assert.match(button, /aria-expanded="false"/, 'and says it is closed')
-  assert.match(button, />Menu</, 'its name is Menu')
+  assert.match(button, /aria-label="Menu"/, 'its name is Menu')
+  assert.match(button, /class="grid size-11 /, 'a 44 px square target')
+  assert.match(button, /<i data-icon="list" data-weight="regular"/, 'the Phosphor list icon, no visible text')
+  const bar = partials.header.slice(0, partials.header.indexOf('</header>'))
+  assert.doesNotMatch(bar, /data-page="start"|Start a project/, 'no Start a project in the header: the pages carry it')
   const dialog = partials.header.match(/<dialog [^>]*id="site-menu"[\s\S]*?<\/dialog>/)?.[0] ?? ''
   assert.ok(dialog, 'a dialog with the id the button controls')
   const open = dialog.match(/^<dialog [^>]*>/)![0]
@@ -550,23 +580,19 @@ test('the phone menu is a modal dialog that drops from the header: a labelled cl
   assert.match(open, /border-b-2 border-ink/, 'the panel ends in a 2 px ink edge')
   assert.match(open, /backdrop:bg-paper\/\d+/, 'the scrim is paper, from the tokens')
   assert.doesNotMatch(open, /shadow/, 'no shadow: the system has none')
-  const close = dialog.match(/<button [^>]*data-menu-close[^>]*>([^<]*)<\/button>/)
-  assert.ok(close, 'a close button')
-  assert.match(close[0], /aria-label="Close menu"/, 'labelled')
-  assert.equal(close[1], 'Close', 'with the word on it')
-  const rows = [...dialog.matchAll(/<li class="([^"]*)">\s*<a [^>]*href="([^"]+)"[^>]*>\s*<span class="[^"]*margin-no[^"]*" aria-hidden="true">(\d\d)<\/span>/g)]
-  assert.deepEqual(rows.map((m) => [m[3], m[2]]), [
-    ['01', '/marque/works/'],
-    ['02', '/marque/services/'],
-    ['03', '/marque/studio/'],
-    ['04', '/marque/account/'],
-  ], 'numbered index rows, in the order of the bar')
+  const close = dialog.match(/<button [^>]*data-menu-close[^>]*>[\s\S]*?<\/button>/)?.[0] ?? ''
+  assert.match(close, /aria-label="Close menu"/, 'labelled')
+  assert.match(close, /class="grid size-11 /, 'a 44 px square target')
+  assert.match(close, /<i data-icon="x" data-weight="regular"/, 'icon only, like Menu')
+  assert.match(dialog, /<a class="button [^"]*" href="\/marque\/start\/" data-page="start">Start a project<\/a>/, 'Start a project lives in the sheet')
+  const rows = [...dialog.matchAll(/<li class="([^"]*)">\s*<a [^>]*href="([^"]+)"[^>]*>\s*<span class="menu-name/g)]
+  assert.deepEqual(rows.map((m) => m[2]), ['/marque/works/', '/marque/services/', '/marque/pricing/', '/marque/studio/', '/marque/account/'], 'index rows, in the order of the bar, with no numbers: they are not a sequence')
   for (const [, classes] of rows) assert.ok(classes.includes('border-b') && classes.includes('border-rule'), 'each row carries its own full-width rule')
   assert.match(dialog, /class="ruler"/, 'the panel opens on the ruler, like every section')
   // The bar's links stay the desktop navigation, and the no-JavaScript fallback.
   const desktop = partials.header.match(/<ul [^>]*data-menu[\s>][\s\S]*?<\/ul>/)?.[0] ?? ''
   assert.match(desktop, /max-lg:hidden/, 'with JavaScript, phones use the dialog instead')
-  for (const page of ['works', 'services', 'studio', 'account']) assert.ok(desktop.includes(`data-page="${page}"`), `bar: ${page}`)
+  for (const page of ['works', 'services', 'pricing', 'studio', 'account']) assert.ok(desktop.includes(`data-page="${page}"`), `bar: ${page}`)
   assert.match(read('app/styles/main.css'), /html:has\(#site-menu:modal\)\s*\{\s*overflow: hidden/, 'the page behind does not scroll while the menu is open')
 })
 
@@ -675,8 +701,16 @@ test('Continue with Google carries Google’s mark in its own four colours, from
 test('the builder offers the first-project discount, ticked from the start, with its own line in the estimate', () => {
   const start = mainOf(source.start)
   assert.match(start, /<input class="check[^"]*" type="checkbox" id="first-project" checked data-first-project aria-describedby="first-project-desc" \/>/)
-  assert.ok(start.includes('<label class="cursor-pointer font-[560]" for="first-project">My first project with Marque</label>'))
-  assert.ok(start.includes('data-line="discount" data-off="Not applied"'), 'a discount line in the sheet')
+  assert.match(start, /<label class="[^"]*min-h-11[^"]*"><input class="check[^"]*" type="checkbox" id="first-project"[^>]*\/>My first project with Marque<\/label>/, 'the checkbox and its name are one 44px label')
+  assert.match(start, /<section [^>]*data-builder data-empty data-first /, 'rows start at their first-project prices, as the box starts ticked')
+  for (const service of SERVICES.filter((x) => x.unit !== 'a month')) {
+    const row = start.match(new RegExp(`<li class="service-row[^"]*" data-service="${service.id}">[\\s\\S]*?</li>`))![0]
+    assert.match(row, pair(service.from, firstProjectPrice(service.from)), `${service.id}: first-project price while ticked`)
+    assert.ok(row.includes(`<span class="in-data-first:hidden">${dollars(service.from)}</span>`), `${service.id}: the regular price alone once unticked`)
+  }
+  assert.ok(!start.includes('data-line="discount"'), 'no separate discount line: each line shows its own price')
+  assert.equal((start.match(/data-savings[ >]/g) ?? []).length, 2, 'the savings in the receipt and in the phone bar')
+  assert.equal(count(start, 'data-total-regular'), 2, 'the regular total struck in the receipt and in the phone bar')
   assert.ok(start.includes(`data-late-note>${LATE_TEXT}</p>`), 'the late-day credit beside the timeline')
 })
 
@@ -685,4 +719,217 @@ test('BACKEND.md plans what the front end is waiting for, and the launch checkli
   for (const topic of ['Google', 'one-time code', 'brief', 'contact', 'verified email', 'first-project', 'late-day credit', 'subdomain', 'custom domain', 'export', 'noindex', 'payments']) {
     assert.match(plan, new RegExp(topic, 'i'), `BACKEND.md covers ${topic}`)
   }
+})
+
+test('Pricing leads with three plans priced by the estimate, Launch highlighted, each opening the builder pre-filled', () => {
+  const pricing = mainOf(source.pricing)
+  for (const plan of PLANS) {
+    const card = pricing.match(new RegExp(`<article [^>]*data-plan="${plan.id}"[\\s\\S]*?</article>`))?.[0] ?? ''
+    assert.ok(card, `${plan.id}: a card`)
+    assert.ok(card.includes(`>${plan.name}</h3>`), `${plan.id}: its name`)
+    const e = estimate(plan.selection)
+    if (e.discount) {
+      assert.match(card, pair(e.oneTimeRegular, e.oneTime), `${plan.id}: one-time, struck and discounted`)
+      assert.ok(card.includes('<span class="offer">First project, 15% off</span>'), `${plan.id}: the offer, by its one name`)
+    } else assert.ok(!card.includes('<s '), `${plan.id}: monthly work shows no discount`)
+    if (e.monthly) assert.ok(card.includes(dollars(e.monthly)), `${plan.id}: ${dollars(e.monthly)} a month`)
+    assert.ok(card.includes(`href="/marque/start/?set=${plan.id}"`), `${plan.id}: into the builder, pre-filled`)
+  }
+  assert.match(pricing, /<article class="on-ink [^"]*" [^>]*data-plan="launch"/, 'Launch is the highlighted plan, in ink')
+  assert.doesNotMatch(pricing, /most popular|best value|recommended/i, 'highlighted without a claim we cannot back')
+})
+
+test('Pricing compares every service: regular price, first-project price, unit and timeline, in a table that scrolls on its own', () => {
+  const pricing = mainOf(source.pricing)
+  const region = pricing.match(/<div class="[^"]*overflow-x-auto[^"]*" role="region" aria-labelledby="table-title" tabindex="0"[\s\S]*?<\/table>/)?.[0] ?? ''
+  assert.ok(region, 'a keyboard-scrollable region, so the page itself never scrolls sideways')
+  const rows = [...region.matchAll(/<tr class="border-t[^"]*"[^>]*>([\s\S]*?)<\/tr>/g)].map((m) => m[1])
+  assert.match(region, /<table class="price-table [^"]*" role="table">/, 'table roles kept, so the phone layout stays a table to screen readers')
+  assert.equal(rows.length, SERVICES.length + 1, 'every service, and Managed hosting')
+  for (const service of SERVICES) {
+    const row = rows.find((r) => r.includes(`>${service.name.replace(' design', '')}`))!
+    assert.ok(row, `${service.id}: a row`)
+    assert.ok(row.includes(`from ${dollars(service.from)}`) && row.includes(service.unit), `${service.id}: regular price and unit`)
+    assert.ok(row.includes(service.time), `${service.id}: timeline`)
+    if (service.unit === 'a month') assert.ok(row.includes('Not discounted'), `${service.id}: monthly, not discounted`)
+    else {
+      assert.ok(row.includes(`<span class="price-now font-[560]"><span class="sr-only">First-project price </span>from ${dollars(firstProjectPrice(service.from))}</span>`), `${service.id}: first-project price`)
+      assert.ok(row.includes(`<s class="price-was"><span class="sr-only">Regular price </span>from ${dollars(service.from)}</s>`), `${service.id}: the regular price struck`)
+    }
+  }
+  assert.ok(rows.some((r) => r.includes('Managed hosting') && r.includes(`${dollars(PRICE.managed)} `)), 'Managed hosting, $39 a month')
+})
+
+test('Pricing sets Managed beside Handed over, states the two rules once, and answers billing questions', () => {
+  const pricing = mainOf(source.pricing)
+  for (const item of MANAGED_INCLUDES) assert.ok(pricing.includes(item), `Managed: ${item}`)
+  assert.ok(pricing.includes('A short written guide to deploying it') && pricing.includes('Hosting and a domain are yours to set up'), 'Handed over')
+  assert.equal(count(pricing, 'If we deliver after day 3, $5 comes off the final invoice for each day late, up to the price of that service.'), 1, 'the late-day credit, once')
+  assert.equal(count(pricing, 'New clients get 15% off each one-time service on their first project, rounded to the dollar in your favour.'), 1, 'the first-project rule, once')
+  const faq = pricing.match(/id="faq"[\s\S]*$/)?.[0] ?? ''
+  for (const q of ['How do we pay?', 'Who gets the first-project discount?', 'What happens if you deliver late?', 'Can I cancel Managed hosting?', 'What about the domain?']) {
+    assert.ok(faq.includes(`<summary>${q}</summary>`), `billing FAQ: ${q}`)
+  }
+  assert.ok(faq.includes('half when you approve the quote and half on delivery'), 'payment as the Terms put it')
+})
+
+test('discounts read the same everywhere: every struck regular price has its first-project price beside it, in the savings colour', () => {
+  const css = read('app/styles/main.css')
+  assert.match(css, /--color-save: oklch\(0\.47 0\.11 150\);/, 'one savings colour, a deep green that passes AA on paper, white and shade')
+  assert.equal(count(css, 'var(--color-save)'), 2, 'used by .price-now and .offer only; the phone bar’s pill is ink and paper')
+  assert.match(css, /\.price-was \{[^}]*color: var\(--color-graphite\)/, 'struck prices stay graphite')
+  const sources: [string, string][] = [...PAGES.map((page): [string, string] => [page.id, mainOf(source[page.id])]), ['format.ts', read('app/lib/format.ts')]]
+  for (const [id, html] of sources) {
+    // The builder's struck totals are filled in by its script, so only pairs written in the page are counted here.
+    const struck = (html.match(/<s class="price-was[^"]*">/g) ?? []).length
+    // A table row keeps the struck regular price and the first-project price in separate cells of the same row.
+    const rowPairs = [...html.matchAll(/<tr[\s\S]*?<\/tr>/g)].filter((m) => m[0].includes('class="price-now')).reduce((n, m) => n + (m[0].match(/<s class="price-was[^"]*">/g) ?? []).length, 0)
+    const paired = rowPairs + (html.match(/<s class="price-was[^"]*"><span class="sr-only">Regular price <\/span>[^<]+<\/s> <span class="price-now/g) ?? []).length
+    assert.equal(paired, struck, `${id}: every struck price is named and paired`)
+    assert.doesNotMatch(html, /text-save|First-project discount \(/, `${id}: one offer name, one colour`)
+  }
+})
+
+test('every first-project price has its struck regular price beside it, and every block of them carries the offer stamp', () => {
+  for (const page of PAGES) {
+    const html = mainOf(source[page.id])
+    // Inline pairs, and table rows that strike the regular price in another cell, are paired; "You save" is a total.
+    const unpaired = html
+      .replace(/<tr[\s\S]*?<\/tr>/g, (row) => (row.includes('<s class="price-was') ? '' : row))
+      .replaceAll('</s> <span class="price-now', '')
+      .match(/class="price-now[^"]*"[^>]*>(?!You save)[^<]*(?:<span class="sr-only">[^<]*<\/span>)?[^<]*/g)
+    assert.equal(unpaired, null, `${page.id}: a first-project price with nothing struck beside it`)
+    const doc = new JSDOM(html).window.document
+    // The phone bar has no room for a stamp, so it carries the short form as plain text.
+    for (const offer of doc.querySelectorAll('.offer')) {
+      assert.ok(!offer.closest('[data-builder-bar]'), `${page.id}: no boxed stamp in the phone bar`)
+      assert.equal(offer.textContent, FIRST_PROJECT_LABEL, `${page.id}: the offer by its one name`)
+    }
+    for (const struck of doc.querySelectorAll('s.price-was')) {
+      const bar = struck.closest('[data-builder-bar]')
+      if (bar) {
+        assert.equal(bar.querySelector('[data-savings]')?.textContent, 'First project', `${page.id}: the phone bar names the offer`)
+        continue
+      }
+      const block = struck.closest('article, aside, figure, table, section')!
+      const stamps = [...block.querySelectorAll('.offer')].map((el) => el.textContent)
+      assert.ok(stamps.includes(FIRST_PROJECT_LABEL), `${page.id}: the block around ${struck.textContent} carries the offer stamp`)
+    }
+  }
+})
+
+test('the builder describes its services in the words of SERVICES, and keeps the stamp and the phone bar in step with the box', () => {
+  const start = mainOf(source.start)
+  for (const id of ['ads', 'print'] as const) {
+    const row = start.match(new RegExp(`<li class="service-row[^"]*" data-service="${id}">[\\s\\S]*?</li>`))![0]
+    assert.ok(row.includes(SERVICES.find((s) => s.id === id)!.includes), `${id}: the description SERVICES gives`)
+  }
+  assert.ok(start.includes(`<p class="mt-3 hidden in-data-first:block"><span class="offer">${FIRST_PROJECT_LABEL}</span></p>`), 'the list’s stamp shows while the rows show first-project prices')
+  const bar = start.match(/<div class="[^"]*" data-builder-bar hidden>/)?.[0] ?? ''
+  assert.match(bar, /max-md:\[html:has\(&\)\]:scroll-pb-28/, 'the page keeps focused fields clear of the bar, two rows tall on phones')
+})
+
+test('the studio figures and founder quotes are inlined by the build from one module, and kept out of meta tags', () => {
+  const pagesWithSamples = { home: ['stats', 'quotes'], pricing: ['quotes'] } as const
+  for (const page of PAGES) {
+    assert.doesNotMatch(source[page.id], /data-sample="/, `${page.id}: no hand-written figure or quote; only <!-- samples:… --> markers`)
+    const blocks = [...built[page.id].matchAll(/<div data-samples="(stats|quotes)">[\s\S]*?<\/(?:dl|ul)><\/div>/g)]
+    assert.deepEqual(blocks.map((m) => m[1]), [...(pagesWithSamples[page.id as keyof typeof pagesWithSamples] ?? [])], `${page.id}: blocks`)
+    for (const [block, kind] of blocks) {
+      for (const [, id] of block.matchAll(/data-sample="([a-z-]+)"/g)) {
+        const known = kind === 'stats' ? SAMPLE_STATS.find((s) => s.id === id) : SAMPLE_QUOTES.find((q) => q.id === id)
+        assert.ok(known, `${page.id}: ${id} comes from app/lib/samples.ts`)
+      }
+    }
+    const head = built[page.id].match(/<head>[\s\S]*?<\/head>/)?.[0] ?? ''
+    for (const s of SAMPLE_STATS) assert.ok(!head.includes(s.label), `${page.id}: ${s.id} not in the head`)
+    for (const q of SAMPLE_QUOTES) assert.ok(!head.includes(q.quote) && !head.includes(q.firstName), `${page.id}: ${q.id} not in the head`)
+    assert.doesNotMatch(built[page.id], /application\/ld\+json|AggregateRating|"Review"/, `${page.id}: no review schema`)
+  }
+  assert.throws(() => includePartials('<!-- samples:quotes ids="nobody" -->', raw, BASE), /nobody/, 'an unknown quote stops the build')
+  assert.match(read('BACKEND.md'), /replace the sample stats and testimonials with real ones \(or remove them\)/i, 'the launch checklist says they are placeholders')
+})
+
+/** A page's main text as sentences, with tags dropped and each block ending its own sentence. */
+const sentences = (html: string) =>
+  mainOf(html)
+    .replace(/<\/(?:p|li|dd|dt|td|th|h[1-6]|summary)>/g, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .split(/(?<=[.!?])\s+|\n/)
+    .map((s) => s.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+test('the late-day credit keeps its cap wherever a page states it, and photo and video count from the shoot', () => {
+  for (const page of PAGES) {
+    for (const sentence of sentences(source[page.id])) {
+      if (/\$5\b/.test(sentence) && /\b(?:each|every|per) day\b/.test(sentence)) assert.ok(sentence.includes('up to the price of that service'), `${page.id}: "${sentence}" keeps the cap`)
+    }
+  }
+  assert.ok(LATE_TEXT.includes('up to the price of that service'), 'the builder’s own copy of the rule')
+  for (const id of ['services', 'pricing', 'terms'] as const) assert.ok(mainOf(source[id]).includes('for photo and video, from the day of the shoot'), `${id}: photo and video count from the shoot`)
+  assert.ok(mainOf(source.home).includes('per shoot, edited in 1 to 3 days after the shoot'), 'Home: the photo row says when its days start')
+})
+
+test('the Launch plan has one name, the discount says how it rounds, and the works read as studio projects', () => {
+  for (const page of PAGES) assert.doesNotMatch(mainOf(source[page.id]), /launch set/i, `${page.id}: Launch plan, never "launch set"`)
+  assert.ok(mainOf(source.home).includes('Launch plan'), 'Home names the Launch plan')
+  for (const id of ['home', 'services', 'pricing', 'terms'] as const) assert.ok(mainOf(source[id]).includes('rounded to the dollar in your favour'), `${id}: says how the discount rounds`)
+  for (const id of ['services', 'pricing'] as const) assert.ok(mainOf(source[id]).includes('$60 a page ($51 on your first project)') || mainOf(source[id]).includes('is $60 ($51 on your first project)'), `${id}: the first-project page price beside the regular one`)
+  for (const id of WORK_PAGES) assert.ok(mainOf(source[id]).includes('A Marque studio project: we set the brief ourselves, so there’s no client to quote.'), `${id}: a studio project`)
+  assert.ok(mainOf(source.home).includes('Three studio projects, all of them live.'), 'Home frames the three as studio projects')
+})
+
+test('the studio never claims to be always on, a team size, or one country’s law, and replies are promised as “usually within a day”', () => {
+  for (const [id, html] of [...PAGES.map((p): [string, string] => [p.id, mainOf(source[p.id])]), ['footer', partials.footer]]) {
+    assert.doesNotMatch(html, /\bany day\b|\b(?:two|three|four|five|six|\d+) of us\b|\bteam of (?:two|three|four|five|six|\d+)\b|GDPR/i, `${id}: no always-on claim, team size or named law`)
+    for (const m of html.matchAll(/within a day/g)) {
+      const before = html.slice(Math.max(0, m.index - 40), m.index)
+      assert.ok(/usually $|reply to every message $|send a quote $/.test(before), `${id}: "${before}within a day" is a target, not a guarantee`)
+    }
+  }
+  assert.ok(mainOf(source.terms).includes('We aim to reply to every message within a day'), 'Terms back the reply promise as a target')
+  assert.ok(mainOf(source.studio).includes('A small team of designers, developers and writers.'), 'Studio: the team as the owner confirmed')
+  assert.ok(mainOf(source.studio).includes('href="/marque/works/">See the works</a>'), 'Studio sends visitors to the Works address')
+})
+
+test('where Privacy and Terms send a request to the contact form, they say it can’t be sent yet', () => {
+  for (const id of ['privacy', 'terms'] as const) {
+    for (const sentence of sentences(source[id]).filter((s) => /write to us through the contact form|[Uu]se the contact form/.test(s))) {
+      const next = sentences(source[id])[sentences(source[id]).indexOf(sentence) + 1] ?? ''
+      assert.match(next, /^Until (?:the form is|it’s) connected, (?:requests|messages|questions) can’t be sent from this site/, `${id}: "${sentence}" is followed by the form’s state`)
+    }
+  }
+  assert.equal(count(mainOf(source.privacy), '<h2>Your data rights</h2>'), 1, 'Privacy: one rights section')
+  assert.doesNotMatch(mainOf(source.privacy), /You have the right to|data portability/, 'Privacy: rights as they may apply where the reader lives, not one law’s list')
+})
+
+test('the Pricing table, its links and the footer carry the first-project offer and 44px targets', () => {
+  const pricing = mainOf(source.pricing)
+  assert.match(pricing, /<th [^>]*scope="col"[^>]*><span class="offer">First project, 15% off<\/span><\/th>/, 'the first-project column header carries the one offer stamp')
+  assert.ok(pricing.includes('<p class="mb-3 sm:hidden"><span class="offer">First project, 15% off</span></p>'), 'on phones, where the header row is hidden, the stamp shows once above the rows')
+  assert.ok(!pricing.includes('data-label="First project, 15% off"') && pricing.includes('data-label="First project"'), 'the stacked label fits on one line, so the two prices line up')
+  for (const link of pricing.match(/<a class="link-quiet[^"]*"/g) ?? []) assert.ok(link.includes('inline-flex min-h-11 items-center'), `table link ${link}: 44px tall`)
+  assert.match(pricing, /<article class="on-ink [^"]*\bself-start\b/, 'the Launch card ends with its content')
+  assert.ok(partials.footer.includes('min-w-11 items-center" href="/marque/services/#faq">FAQ'), 'the footer FAQ link is 44px wide')
+  assert.ok(mainOf(source.services).includes('We don’t sell the logo on its own.') && !mainOf(source.services).includes('say so in your brief'), 'no promise of a logo under the $390 floor')
+  assert.ok(notFound.includes('href="%BASE_URL%pricing/">Pricing</a>'), 'the 404 lists Pricing')
+})
+
+test('titles read "Page name, Marque", and the share image describes the studio the same way on every page', () => {
+  for (const page of PAGES) {
+    const title = source[page.id].match(/<title>([^<]+)<\/title>/)?.[1] ?? ''
+    if (page.id === 'home') assert.ok(title.startsWith('Marque, '), 'Home: brand first')
+    else assert.match(title, /^[^:]+, Marque$/, `${page.id}: "${title}"`)
+    assert.equal(meta(source[page.id], 'property', 'og:image:alt'), 'Marque, a brand and website studio for founders.', `${page.id}: share image description`)
+  }
+  assert.match(notFound, /<title>Page not found, Marque<\/title>/, '404 title')
+})
+
+test('project captions share a baseline, and hovers that trade two colours outright do it at once, never fading through grey', () => {
+  for (const id of WORK_PAGES) {
+    const page = mainOf(source[id])
+    assert.ok(count(page, 'figcaption class="mt-auto pt-3') >= 2, `${id}: the two screen captions sit at the bottom of equal-height figures`)
+  }
+  for (const id of ['usual', 'enamel'] as const) assert.match(mainOf(source[id]), /<a class="button button--brand [^"]*hover:bg-/, `${id}: the project button swaps its brand colours instead of taking the square`)
+  for (const page of PAGES) assert.doesNotMatch(mainOf(source[page.id]), /transition-colors/, `${page.id}: no colour fade where background and text swap`)
 })

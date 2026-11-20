@@ -4,39 +4,25 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sign in or create an account, Marque</title>
-    <meta name="description" content="Sign in to Marque with Google or with your email and a one-time code, no password, to keep the project briefs you price in the builder." />
+    <meta name="description" content="Sign in to Marque with your email and a one-time code, no password, to keep the project briefs you price in the builder. Google sign-in isn’t connected yet." />
     <link rel="canonical" href="%VITE_SITE_URL%account/" />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="oklch(0.975 0.002 100)" />
     <meta property="og:title" content="Sign in or create an account, Marque" />
-    <meta property="og:description" content="Sign in to Marque with Google or with your email and a one-time code, no password, to keep the project briefs you price in the builder." />
+    <meta property="og:description" content="Sign in to Marque with your email and a one-time code, no password, to keep the project briefs you price in the builder. Google sign-in isn’t connected yet." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="%VITE_SITE_URL%account/" />
     <meta property="og:image" content="%VITE_SITE_URL%og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Marque, a brand and marketing studio for small businesses." />
+    <meta property="og:image:alt" content="Marque, a brand and website studio for founders." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Sign in or create an account, Marque" />
-    <meta name="twitter:description" content="Sign in to Marque with Google or with your email and a one-time code, no password, to keep the project briefs you price in the builder." />
+    <meta name="twitter:description" content="Sign in to Marque with your email and a one-time code, no password, to keep the project briefs you price in the builder. Google sign-in isn’t connected yet." />
     <meta name="twitter:image" content="%VITE_SITE_URL%og.png" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <script>document.documentElement.classList.add('js');setTimeout(function(){if(!document.documentElement.hasAttribute('data-ready'))document.documentElement.classList.remove('js')},4000)</script>
-    <script type="module" src="/main.ts"></script>
-    <noscript>
-      <style>
-        [data-header] { position: sticky; }
-        body { padding-top: 0; }
-        [data-menu-button] { display: none; }
-        @media (max-width: 63.99rem) {
-          [data-header] > div { flex-wrap: wrap; height: auto; padding-block: 0.5rem; }
-          [data-header] nav { order: 3; width: 100%; }
-          [data-menu] { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 0 1.25rem; padding: 0; border: 0; }
-          [data-menu] a { min-height: 44px; border: 0; font-size: 1rem; }
-        }
-      </style>
-    </noscript>
+    <!-- include:head -->
   </head>
   <body>
     <!-- include:header current="account" -->
@@ -45,13 +31,12 @@
       <section class="wrap" aria-labelledby="account-title" data-reveal>
         <div class="ruler" aria-hidden="true"></div>
         <div class="grid-page gap-y-6 pt-[clamp(2.25rem,1rem+4vw,5rem)] md:gap-y-8">
-          <p class="margin-no col-span-4 md:col-span-12 lg:col-span-2" aria-hidden="true" data-reveal-item>01</p>
-          <div class="col-span-4 md:col-span-8 lg:col-span-5" data-reveal-item>
+          <div class="col-span-4 md:col-span-8 lg:col-span-5 lg:col-start-3" data-reveal-item>
             <h1 class="text-h2" id="account-title" tabindex="-1"><span class="in-data-signed-in:hidden" data-account-heading>Sign in to Marque</span><span class="hidden in-data-signed-in:inline">Your briefs</span></h1>
-            <p class="mt-4 max-w-[30rem] text-lead text-graphite in-data-signed-in:hidden">Keep the briefs you price in the builder in one place. There’s no password: use Google, or your email and a code.</p>
+            <p class="mt-4 max-w-[30rem] text-lead text-graphite in-data-signed-in:hidden">Keep the briefs you price in the builder in one place. There’s no password: use your email and a code. Google sign-in isn’t connected yet.</p>
             <div class="hidden in-data-signed-in:block">
-              <p class="mt-4 w-fit text-lead" id="account-greeting" tabindex="-1">Filed under <span data-account-greeting-name>your name</span>.</p>
-              <p class="mt-1 text-graphite" data-account-contact></p>
+              <p class="mt-4 w-fit text-lead" id="account-greeting" tabindex="-1">Filed under <span class="wrap-anywhere" data-account-greeting-name>your name</span>.</p>
+              <p class="mt-1 text-graphite wrap-anywhere" data-signed-in-with></p>
               <button class="button button--outline mt-5" type="button" data-signout>Sign out</button>
             </div>
           </div>
@@ -61,39 +46,39 @@
       <section class="wrap pt-[clamp(2rem,1.5rem+2vw,3rem)] in-data-signed-in:hidden" aria-label="Sign-in options" data-reveal>
         <div class="grid-page gap-y-8">
           <div class="col-span-4 md:col-span-8 lg:col-span-5 lg:col-start-3" data-reveal-item>
-            <div class="border border-ink bg-sheet p-5 sm:p-8" data-signin-card data-mode="signin">
+            <div class="border border-ink bg-sheet p-5 sm:p-8">
               <div data-signin-start>
-                <button class="button-provider" type="button" data-google disabled><svg class="size-5 flex-none" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path class="fill-google-red" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /><path class="fill-google-blue" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /><path class="fill-google-yellow" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /><path class="fill-google-green" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" /></svg><span>Continue with Google</span></button>
-                <p class="mt-2 min-h-[1.55em] text-sm font-[560]" aria-live="polite" data-google-status></p>
-                <p class="my-4 flex items-center gap-4 text-sm text-graphite before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">or</p>
-                <form class="grid gap-5" data-signin="contact" novalidate>
+                <form class="grid gap-5" data-signin="email" novalidate>
                   <div data-create-only hidden>
                     <label class="font-[560]" for="signin-first-name">First name</label>
-                    <input class="field mt-1.5" id="signin-first-name" name="first-name" type="text" autocomplete="given-name" maxlength="60" />
+                    <input class="field mt-1.5" id="signin-first-name" name="first-name" type="text" autocomplete="given-name" maxlength="40" />
                     <p class="field-error" id="signin-first-name-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
                   </div>
                   <div>
-                    <label class="font-[560]" for="signin-contact">Email address</label>
-                    <input class="field mt-1.5" id="signin-contact" name="contact" type="email" autocomplete="email" maxlength="80" required />
-                    <p class="field-error" id="signin-contact-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
+                    <label class="font-[560]" for="signin-email">Email address</label>
+                    <input class="field mt-1.5" id="signin-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+                    <p class="field-error" id="signin-email-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
                   </div>
                   <button class="button w-full" type="submit" disabled data-email-submit>Continue with email</button>
                   <noscript><p class="text-sm font-[560]">Signing in needs JavaScript, which is off. Nothing typed here goes anywhere.</p></noscript>
                 </form>
+                <p class="my-4 flex items-center gap-4 text-sm text-graphite before:h-px before:flex-1 before:bg-rule after:h-px after:flex-1 after:bg-rule">or</p>
+                <button class="button-provider" type="button" data-google disabled><svg class="size-5 flex-none" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path class="fill-google-red" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /><path class="fill-google-blue" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /><path class="fill-google-yellow" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /><path class="fill-google-green" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" /></svg><span>Continue with Google</span></button>
+                <p class="mt-2 min-h-[1.55em] text-sm font-[560]" aria-live="polite" data-google-status></p>
               </div>
 
               <form class="grid gap-5" data-signin="code" novalidate hidden>
                 <div>
                   <h2 class="text-h3" id="code-title">Your sign-in code</h2>
-                  <p class="mt-2 text-graphite">We’ll email a four-digit code to <span class="font-[560] text-ink" data-code-contact></span>.</p>
+                  <p class="mt-2 text-graphite">We’ll email a four-digit code to <span class="font-[560] text-ink wrap-anywhere" data-code-email></span>.</p>
                 </div>
-                <div class="border border-ink p-4">
-                  <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"><span class="offer">Preview</span><span class="text-graphite">Emails aren’t sent yet, so your code shows here.</span></p>
+                <div class="border border-ink p-4" data-preview>
+                  <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"><span class="tag">Preview</span><span class="text-graphite">Emails aren’t sent yet, so your code shows here.</span></p>
                   <p class="tabular mt-3 text-figure leading-tight font-[560] tracking-[0.08em]" data-preview-code>0000</p>
                 </div>
                 <div>
                   <label class="font-[560]" for="signin-code">Four-digit code</label>
-                  <input class="field tabular mt-1.5 max-w-[12rem] tracking-[0.2em]" id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+                  <input class="field tabular mt-1.5 max-w-[12rem] tracking-[0.2em]" id="signin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="\d{4}" required />
                   <p class="field-error" id="signin-code-error" hidden><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -119,7 +104,7 @@
             </div>
             <div class="border-t border-rule pt-3">
               <dt class="font-[560]">When accounts go live</dt>
-              <dd class="mt-1 text-graphite">Sign in with the same email you used in the builder or the contact form, and your briefs and messages join your account.</dd>
+              <dd class="mt-1 text-graphite">Sign in with the email you use in the contact form, and your earlier messages and briefs join your account.</dd>
             </div>
           </dl>
         </div>
@@ -128,16 +113,28 @@
       <section class="wrap hidden pt-[clamp(2rem,1.5rem+2vw,3rem)] in-data-signed-in:block" aria-labelledby="saved-title">
         <div class="grid-page min-h-[28rem] content-start gap-y-8">
           <div class="col-span-4 md:col-span-8 lg:col-span-7 lg:col-start-3">
-            <h2 class="sr-only" id="saved-title">Saved briefs</h2>
+            <h2 class="sr-only" id="saved-title" tabindex="-1">Saved briefs</h2>
             <p class="field-error mt-0 mb-4" id="briefs-error" tabindex="-1" hidden data-briefs-error><i data-icon="warning-circle" data-weight="regular" class="size-5 flex-none"></i><span data-error-text></span></p>
             <ul class="border-b border-ink" data-briefs></ul>
-            <div class="border-t border-ink py-6" data-briefs-empty>
-              <p class="text-h3 font-[560]">Nothing filed yet</p>
-              <p class="mt-2 max-w-[34rem] text-graphite">Price a project in the builder and press Save brief. It lands here with its lines, totals and timeline.</p>
-              <a class="button mt-5" href="/marque/start/">Open the builder</a>
+            <div class="grid gap-8 border-t border-ink py-6 sm:grid-cols-2" data-briefs-empty>
+              <div>
+                <h3>Your first brief starts in the builder</h3>
+                <p class="mt-2 text-graphite">A brief is the services you pick, priced line by line, with your first-project price and the timeline. Save one and it waits here, ready to open again or send.</p>
+                <a class="button mt-5" href="/marque/start/">Build your first project brief</a>
+              </div>
+              <figure class="self-start border border-rule bg-sheet p-4 text-sm" aria-labelledby="example-title">
+                <figcaption class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-[560]" id="example-title">Brand identity and website</span><span class="tag">Example</span></figcaption>
+                <ul class="tabular mt-3">
+                  <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Brand identity</span><span class="flex-none"><s class="price-was"><span class="sr-only">Regular price </span>$390</s> <span class="price-now"><span class="sr-only">first-project price </span>$331</span></span></li>
+                  <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Website, 6 pages</span><span class="flex-none"><s class="price-was"><span class="sr-only">Regular price </span>$690</s> <span class="price-now"><span class="sr-only">first-project price </span>$586</span></span></li>
+                  <li class="flex justify-between gap-4 border-t border-rule py-2"><span>Managed hosting</span><span class="flex-none">$39 a month</span></li>
+                </ul>
+                <p class="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-rule py-2"><span class="offer">First project, 15% off</span><span class="price-now font-[560]">You save $163 on your first project</span></p>
+                <p class="tabular flex justify-between gap-4 border-t border-ink pt-2"><span class="text-graphite">One-time</span><span class="font-[560]"><s class="price-was"><span class="sr-only">Regular price </span>$1,080</s> <span class="price-now"><span class="sr-only">first-project price </span>$917</span></span></p>
+              </figure>
             </div>
           </div>
-          <p class="col-span-4 text-sm text-graphite md:col-span-8 lg:col-span-3 lg:col-start-10"><span class="offer mb-2 text-ink">Preview</span><br />Your briefs are kept in this browser for now. When accounts go live, they move to your account.</p>
+          <p class="col-span-4 text-sm text-graphite md:col-span-8 lg:col-span-3 lg:col-start-10"><span class="tag mb-2">Preview</span><br />Your briefs are kept in this browser for now. When accounts go live, they move to your account.</p>
         </div>
       </section>
       <p class="sr-only" aria-live="polite" data-account-status></p>

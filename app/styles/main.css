@@ -16,6 +16,10 @@
   --color-rule-strong: oklch(0.6 0 0);
   --color-on-ink-muted: oklch(0.78 0 0);
   --color-rule-on-ink: oklch(0.5 0 0);
+  /* First-project prices, savings lines and the offer badge only: 6.1:1 on paper, 6.5:1 on white, 5.5:1 on shade. */
+  --color-save: oklch(0.47 0.11 150);
+  /* The same green, lightened, for savings on ink: 9.4:1 on ink. */
+  --color-on-ink-save: oklch(0.78 0.12 150);
   /* The marks and pages of the three projects on Works, in their own colours. */
   --color-usual: oklch(0.46 0.2 266);
   --color-usual-ink: oklch(0.99 0.004 85);
@@ -56,7 +60,6 @@
   --breakpoint-sm: 36rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;
-  --breakpoint-xl: 80rem;
 
   --radius-*: initial;
   --shadow-*: initial;
@@ -66,6 +69,8 @@
 
   --ease-*: initial;
   --ease-precise: cubic-bezier(0.2, 0, 0, 1);
+  /* Softer at the end than --ease-precise: for content rising into place, not for controls. */
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   --default-transition-duration: 200ms;
   --default-transition-timing-function: var(--ease-precise);
   --animate-*: initial;
@@ -149,6 +154,12 @@
     text-wrap: balance;
   }
 
+  /* Short labels and captions: balanced, so no line ends on one word. */
+  dt,
+  figcaption {
+    text-wrap: balance;
+  }
+
   h1 {
     font-size: var(--text-h1);
     line-height: 1;
@@ -169,7 +180,8 @@
 
   p,
   li,
-  dd {
+  dd,
+  td {
     text-wrap: pretty;
   }
 
@@ -221,54 +233,153 @@
     color: var(--color-graphite);
   }
 
+  /* Hover spreads a square, like the mark's, from where the pointer came in (shared/fill.ts); focus fills from the centre.
+     Under the square the two colours trade places: ::before inverts against white, and ::after adds back what inverting
+     misses (background + text − white), so every covered pixel is already the end state. Hovered or focused, the button
+     takes the swapped colours itself and the layers hide; with motion, button-hold keeps the old ones until the square
+     is full. On the way out the layers return full and shrink. */
   .button {
+    --button-bg: var(--color-ink);
+    --button-text: var(--color-paper);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: --spacing(2);
     min-height: 44px;
     padding: 0 --spacing(5);
-    border: 1px solid var(--color-ink);
-    background-color: var(--color-ink);
-    color: var(--color-paper);
+    border: 1px solid var(--button-border, var(--color-ink));
+    background-color: var(--filled-bg, var(--button-bg));
+    color: var(--filled-text, var(--button-text));
     font-size: 1rem;
     font-weight: 560;
     line-height: 1.2;
     text-align: center;
     text-decoration: none;
 
-    &:hover {
-      background-color: var(--color-paper);
-      color: var(--color-ink);
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      z-index: 1;
+      left: var(--fill-x, 50%);
+      top: var(--fill-y, 50%);
+      width: var(--fill-size, calc(100% + 2px));
+      aspect-ratio: 1;
+      translate: -50% -50%;
+      scale: 0;
+      visibility: var(--fill-layers, visible);
+      pointer-events: none;
+    }
+
+    &::before {
+      background-color: var(--color-sheet);
+      mix-blend-mode: difference;
+    }
+
+    /* Without plus-lighter the inverted square ends a shade off the tokens, and the swap below corrects it. */
+    &::after {
+      display: none;
+    }
+
+    @supports (mix-blend-mode: plus-lighter) and (color: rgb(from white r g b)) {
+      &::after {
+        display: block;
+        background-color: rgb(from color-mix(in srgb, var(--button-bg), var(--button-text)) calc(r * 2 - 255) calc(g * 2 - 255) calc(b * 2 - 255));
+        mix-blend-mode: plus-lighter;
+      }
+    }
+
+    &:focus-visible,
+    &:active:not(:disabled) {
+      --filled-bg: var(--button-text);
+      --filled-text: var(--button-bg);
+      --fill-layers: hidden;
+
+      &::before,
+      &::after {
+        left: 50%;
+        top: 50%;
+        width: calc(100% + 2px);
+        scale: 1;
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        --filled-bg: var(--button-text);
+        --filled-text: var(--button-bg);
+        --fill-layers: hidden;
+
+        &::before,
+        &::after {
+          scale: 1;
+        }
+      }
+    }
+
+    &:disabled {
+      --button-bg: var(--color-shade);
+      --button-text: var(--color-graphite);
+      --button-border: var(--color-rule-strong);
+      cursor: not-allowed;
     }
 
     @media (prefers-reduced-motion: no-preference) {
-      transition:
-        background-color var(--default-transition-duration) var(--ease-precise),
-        color var(--default-transition-duration) var(--ease-precise);
+      --fill-time: 360ms;
+
+      &::before,
+      &::after {
+        transition: scale var(--fill-time) var(--ease-precise);
+      }
+
+      &:focus-visible,
+      &:active:not(:disabled) {
+        animation: button-hold var(--fill-time) step-end;
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        &:hover:not(:disabled) {
+          animation: button-hold var(--fill-time) step-end;
+        }
+      }
     }
   }
 
   .button--outline {
-    background-color: transparent;
-    color: var(--color-ink);
+    --button-bg: var(--color-paper);
+    --button-text: var(--color-ink);
+  }
 
-    &:hover {
-      background-color: var(--color-ink);
-      color: var(--color-paper);
+  /* On a white card the outline button is white too, so it reads as an outline, not a grey box. */
+  .bg-sheet .button--outline:not(:disabled) {
+    --button-bg: var(--color-sheet);
+  }
+
+  /* The project buttons keep their site's colours and swap them on hover, with no square. */
+  .button--brand {
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  /* Holds the resting colours and the layers while the square grows, then lets go of all three in one frame. */
+  @keyframes button-hold {
+    from {
+      --filled-bg: var(--button-bg);
+      --filled-text: var(--button-text);
+      --fill-layers: visible;
     }
   }
 
   .on-ink {
     & .button {
-      border-color: var(--color-paper);
-      background-color: var(--color-paper);
-      color: var(--color-ink);
-
-      &:hover {
-        background-color: var(--color-ink);
-        color: var(--color-paper);
-      }
+      --button-bg: var(--color-paper);
+      --button-text: var(--color-ink);
+      --button-border: var(--color-paper);
     }
 
     & :focus-visible {
@@ -325,7 +436,7 @@
     }
   }
 
-  /* Only the words underline, not the number or icon beside them. */
+  /* Only the words underline, not the icon beside them. */
   .nav-account:hover .link-quiet,
   .nav-account:focus-visible .link-quiet,
   .nav-account[aria-current='page'] .link-quiet,
@@ -337,7 +448,7 @@
       0% 1px;
   }
 
-  /* On the page grid, so the number and the name sit on the ruler's ticks. */
+  /* On the page grid, so the name sits on the ruler's ticks. */
   .menu-row {
     display: grid;
     grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
@@ -351,17 +462,9 @@
     letter-spacing: -0.025em;
     text-decoration: none;
 
-    & .margin-no {
-      grid-column: span 1;
-    }
-
     & .menu-name {
-      grid-column: 2 / -1;
+      grid-column: 1 / -1;
       min-width: 0;
-    }
-
-    &[aria-current='page'] .margin-no {
-      color: var(--color-ink);
     }
   }
 
@@ -425,12 +528,52 @@
     text-decoration-thickness: 1px;
   }
 
+  .price-now {
+    color: var(--color-save);
+  }
+
   .on-ink .price-was {
     color: var(--color-on-ink-muted);
   }
 
-  /* The first-project offer, in a fine box like a stamp; it takes the colour of the text around it. */
+  /* The first-project offer, in a fine box like a stamp. On ink it takes the lighter green. */
   .offer {
+    display: inline-flex;
+    align-items: center;
+    padding: --spacing(0.5) --spacing(2);
+    border: 1px solid currentColor;
+    color: var(--color-save);
+    font-size: var(--text-sm);
+    font-weight: 560;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
+  /* The offer as a small ink pill, where the controls around it are square boxes already: the phone bar.
+     Neutral like the rest of the bar, so the green stays on the prices. */
+  .offer-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem --spacing(2);
+    border-radius: 999px;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    vertical-align: 0.15em;
+  }
+
+  .on-ink .offer,
+  .on-ink .price-now {
+    color: var(--color-on-ink-save);
+  }
+
+  /* The same box in ink, for labels that aren't the offer: Preview, Example. */
+  .tag {
     display: inline-flex;
     align-items: center;
     padding: --spacing(0.5) --spacing(2);
@@ -466,6 +609,40 @@
 
     @media (prefers-reduced-motion: no-preference) {
       transition: background-color var(--default-transition-duration) var(--ease-precise);
+    }
+  }
+
+  /* On narrow phones each price-table row stacks: the service, then its three figures, each named by its column. */
+  @media (max-width: 35.99rem) {
+    .price-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .price-table tbody tr {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: var(--gap);
+      padding-block: --spacing(3);
+    }
+
+    .price-table th[scope='row'] {
+      grid-column: 1 / -1;
+      margin-bottom: --spacing(1);
+    }
+
+    .price-table td {
+      display: block;
+    }
+
+    .price-table td::before {
+      content: attr(data-label);
+      display: block;
+      font-size: var(--text-sm);
+      color: var(--color-graphite);
     }
   }
 
@@ -564,6 +741,7 @@
     & label {
       position: relative;
       display: inline-flex;
+      min-width: 44px;
     }
 
     & input {
@@ -578,6 +756,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      flex: 1;
       min-width: 44px;
       min-height: 44px;
       padding: 0 --spacing(3);
@@ -719,10 +898,8 @@
       text-underline-offset: 0.2em;
     }
   }
-}
 
-/* Scroll reveal: shared/reveal.ts marks only targets below the first screen as pending. */
-@layer components {
+  /* Scroll reveal: shared/reveal.ts marks only targets below the first screen as pending. */
   @media (prefers-reduced-motion: no-preference) {
     .js [data-reveal-pending] {
       opacity: 0;
@@ -733,8 +910,8 @@
       opacity: 1;
       transform: none;
       transition:
-        opacity 520ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
-        transform 520ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+        opacity 520ms var(--ease-settle) var(--reveal-delay, 0ms),
+        transform 520ms var(--ease-settle) var(--reveal-delay, 0ms);
     }
   }
 }

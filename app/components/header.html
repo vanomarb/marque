@@ -7,63 +7,68 @@
       <span>Marque</span>
     </a>
     <nav aria-label="Main">
-      <button class="inline-flex min-h-11 items-center border border-ink px-3.5 text-sm font-[560] lg:hidden" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="site-menu" data-menu-button>Menu</button>
+      <button class="grid size-11 place-items-center border border-ink hover:bg-shade lg:hidden" type="button" aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="site-menu" data-menu-button><i data-icon="list" data-weight="regular" class="size-6"></i></button>
       <ul class="flex items-center gap-x-7 max-lg:hidden" data-menu>
         <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%works/" data-page="works">Works</a></li>
         <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%services/" data-page="services">Services</a></li>
+        <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%pricing/" data-page="pricing">Pricing</a></li>
         <li><a class="link-quiet inline-flex min-h-11 items-center font-[520]" href="%BASE_URL%studio/" data-page="studio">Studio</a></li>
-        <li><a class="nav-account inline-flex min-h-11 items-center gap-2 font-[520]" href="%BASE_URL%account/" data-page="account"><i data-icon="user-circle" data-weight="regular" class="size-5 flex-none"></i><span class="sr-only hidden in-data-signed-in:inline">Your briefs, signed in as </span><span class="link-quiet max-w-[12ch] truncate" data-account-name>Sign in</span></a></li>
+        <li><a class="nav-account inline-flex min-h-11 items-center gap-2 font-[520]" href="%BASE_URL%account/" data-page="account"><i data-icon="user-circle" data-weight="regular" class="size-5 flex-none"></i><span class="link-quiet in-data-signed-in:hidden">Sign in</span><span class="sr-only hidden in-data-signed-in:inline">Your briefs, signed in as </span><span class="sr-only hidden in-data-signed-in:inline" data-account-email></span><span class="link-quiet hidden max-w-[12ch] truncate in-data-signed-in:inline" aria-hidden="true" data-account-name></span></a></li>
       </ul>
     </nav>
-    <a class="button flex-none max-xs:px-3 max-xs:text-sm" href="%BASE_URL%start/" data-page="start">Start a project</a>
   </div>
 </header>
 
 <!-- The menu's top bar repeats the header's, with Close where Menu was, so the bar seems to stay put as it opens. -->
-<dialog class="inset-x-0 top-0 bottom-auto m-0 h-auto max-h-dvh w-full max-w-none overflow-y-auto border-b-2 border-ink bg-paper p-0 text-ink backdrop:bg-paper/85 motion-safe:open:backdrop:animate-fade-in" id="site-menu" aria-label="Menu" data-menu-dialog>
+<dialog class="inset-x-0 top-0 bottom-auto m-0 h-auto max-h-dvh w-full max-w-none overflow-y-auto border-b-2 border-ink bg-paper p-0 text-ink backdrop:bg-paper/85 motion-safe:open:backdrop:animate-fade-in" id="site-menu" aria-label="Menu">
   <div data-menu-panel>
     <div class="wrap flex h-header items-center gap-6 max-lg:gap-2">
       <a class="mr-auto inline-flex min-h-11 items-center gap-2.5 text-[1.4375rem] leading-none font-[640] tracking-[-0.03em] max-xs:text-[1.3125rem]" href="%BASE_URL%" data-page="home">
         <svg class="size-[1.625rem] flex-none" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M1.5 9V1.5H9M26.5 19v7.5H19" fill="none" stroke="currentColor" stroke-width="2" /><rect x="8" y="8" width="12" height="12" fill="currentColor" /></svg>
         <span>Marque</span>
       </a>
-      <button class="inline-flex min-h-11 items-center border border-ink bg-ink px-3.5 text-sm font-[560] text-paper" type="button" aria-label="Close menu" data-menu-close autofocus>Close</button>
-      <a class="button flex-none max-xs:px-3 max-xs:text-sm" href="%BASE_URL%start/" data-page="start">Start a project</a>
+      <button class="grid size-11 place-items-center border border-ink bg-ink text-paper" type="button" aria-label="Close menu" data-menu-close autofocus><i data-icon="x" data-weight="regular" class="size-6"></i></button>
     </div>
     <nav class="wrap pb-5 motion-safe:animate-drop" aria-label="Main">
       <div class="ruler" aria-hidden="true"></div>
       <ul>
         <li class="border-b border-rule">
-          <a class="menu-row" href="%BASE_URL%works/" data-page="works"><span class="margin-no" aria-hidden="true">01</span><span class="menu-name"><span class="link-quiet">Works</span></span></a>
+          <a class="menu-row" href="%BASE_URL%works/" data-page="works"><span class="menu-name"><span class="link-quiet">Works</span></span></a>
         </li>
         <li class="border-b border-rule">
-          <a class="menu-row" href="%BASE_URL%services/" data-page="services"><span class="margin-no" aria-hidden="true">02</span><span class="menu-name"><span class="link-quiet">Services</span></span></a>
+          <a class="menu-row" href="%BASE_URL%services/" data-page="services"><span class="menu-name"><span class="link-quiet">Services</span></span></a>
         </li>
         <li class="border-b border-rule">
-          <a class="menu-row" href="%BASE_URL%studio/" data-page="studio"><span class="margin-no" aria-hidden="true">03</span><span class="menu-name"><span class="link-quiet">Studio</span></span></a>
+          <a class="menu-row" href="%BASE_URL%pricing/" data-page="pricing"><span class="menu-name"><span class="link-quiet">Pricing</span></span></a>
         </li>
         <li class="border-b border-rule">
-          <a class="menu-row" href="%BASE_URL%account/" data-page="account"><span class="margin-no" aria-hidden="true">04</span><span class="menu-name inline-flex min-w-0 items-center gap-3"><i data-icon="user-circle" data-weight="regular" class="size-[0.8em] flex-none"></i><span class="sr-only hidden in-data-signed-in:inline">Your briefs, signed in as </span><span class="link-quiet truncate" data-account-name>Sign in</span></span></a>
+          <a class="menu-row" href="%BASE_URL%studio/" data-page="studio"><span class="menu-name"><span class="link-quiet">Studio</span></span></a>
+        </li>
+        <li class="border-b border-rule">
+          <a class="menu-row" href="%BASE_URL%account/" data-page="account"><span class="menu-name inline-flex min-w-0 items-baseline gap-3"><i data-icon="user-circle" data-weight="regular" class="size-[0.8em] flex-none"></i><span class="min-w-0"><span class="link-quiet in-data-signed-in:hidden">Sign in</span><span class="link-quiet hidden in-data-signed-in:inline">Your briefs</span><span class="mt-1 hidden text-sm leading-[1.4] font-normal tracking-normal text-graphite wrap-anywhere in-data-signed-in:block" data-account-email></span></span></span></a>
         </li>
       </ul>
+      <a class="button mt-6 w-full" href="%BASE_URL%start/" data-page="start">Start a project</a>
     </nav>
   </div>
 </dialog>
 <script>
-  // Runs before first paint. Same rules as loadSession in app/lib/account.ts; the tests run both on the same records.
+  // Runs before first paint, so it can't wait for the backend. Same rules as readSession in app/lib/backend/local-auth.ts; the tests run both.
   ;(function () {
     try {
       var account = JSON.parse(localStorage.getItem('marque.account') || 'null')
-      var name = account ? account.firstName : null
+      if (!account || typeof account !== 'object') return
+      var name = account.firstName
       var named = typeof name === 'string' && name.trim() !== '' && name.trim().length <= 40
-      var contact = account && account.contact
-      var value = contact && typeof contact.value === 'string' ? contact.value.trim() : ''
-      var known = !!contact && contact.kind === 'email'
-      var reachable = /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]{2,}$/.test(value)
-      if ((named || name === undefined || name === null) && known && reachable) {
+      var email = typeof account.email === 'string' ? account.email.trim() : ''
+      if ((named || name === undefined || name === null) && /^[^\s@]+@(?:[^\s@.]+\.)+[^\s@.]{2,}$/.test(email)) {
         document.documentElement.setAttribute('data-signed-in', '')
-        var label = named ? name.trim().split(/\s+/)[0] : value
-        document.querySelectorAll('[data-account-name]').forEach(function (el) { el.textContent = label })
+        var label = named ? name.trim().split(/\s+/)[0] : email.slice(0, email.lastIndexOf('@'))
+        document.querySelectorAll('[data-account-name]').forEach(function (el) {
+          el.textContent = label
+          el.closest('a').title = email
+        })
+        document.querySelectorAll('[data-account-email]').forEach(function (el) { el.textContent = email })
       }
     } catch {}
   })()

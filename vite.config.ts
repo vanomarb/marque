@@ -3,7 +3,7 @@ import { dirname, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
-import { includePartials, type PartialName } from './build/partials.ts'
+import { PARTIALS, includePartials, type PartialName } from './build/partials.ts'
 import { BASE, LOCAL_SITE_URL, checkSiteUrl, leftoverPlaceholders } from './build/site.ts'
 
 const page = (name: string) => fileURLToPath(new URL(name, import.meta.url))
@@ -24,7 +24,7 @@ function sharedPartials(): Plugin {
     name: 'marque:shared-partials',
     transformIndexHtml: {
       order: 'pre',
-      handler: (html) => includePartials(html, { header: read('header'), footer: read('footer') }, BASE),
+      handler: (html) => includePartials(html, Object.fromEntries(PARTIALS.map((name) => [name, read(name)])) as Record<PartialName, string>, BASE),
     },
     configureServer(server) {
       server.watcher.add(dir)
@@ -68,7 +68,7 @@ function inlinePhosphor(): Plugin {
 function nodeModulesUrls(): Plugin {
   const dir = fileURLToPath(new URL('./node_modules/', import.meta.url))
   return {
-    name: 'node-modules-urls',
+    name: 'marque:node-modules-urls',
     transformIndexHtml: {
       order: 'pre',
       handler: (html, { filename, server }) => html.replaceAll('"/node_modules/', `"${server ? `/@fs${dir}` : `${relative(dirname(filename), dir)}/`}`),
@@ -93,7 +93,6 @@ function noPlaceholdersLeft(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, page('./'), 'VITE_')
-  // Without the variable or a .env, the local preview address; the Pages workflow passes the published one.
   if (env.VITE_SITE_URL === undefined) process.env.VITE_SITE_URL = env.VITE_SITE_URL = LOCAL_SITE_URL
   checkSiteUrl(env.VITE_SITE_URL)
   return {

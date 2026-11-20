@@ -9,6 +9,15 @@ export function initNav(): void {
   document.body.prepend(sentinel)
   new IntersectionObserver(([entry]) => header.toggleAttribute('data-compact', !entry.isIntersecting)).observe(sentinel)
 
+  // Signing in from a page brings you back to it. Written as the link is used, since the builder keeps its picks in the address.
+  const pointToAccount = (event: Event) => {
+    const link = (event.target as Element | null)?.closest?.<HTMLAnchorElement>('a[data-page="account"]')
+    if (!link) return
+    const back = !document.documentElement.hasAttribute('data-signed-in') && !window.location.pathname.endsWith('/account/')
+    link.setAttribute('href', back ? `${link.pathname}?next=${encodeURIComponent(window.location.pathname + window.location.search)}` : link.pathname)
+  }
+  for (const type of ['pointerover', 'focusin', 'click']) document.addEventListener(type, pointToAccount)
+
   const button = header.querySelector<HTMLButtonElement>('[data-menu-button]')
   const menu = document.querySelector<HTMLDialogElement>('#site-menu')
   if (!button || !menu) return

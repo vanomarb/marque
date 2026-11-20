@@ -7,7 +7,8 @@ export function localDate(at: Date, timeZone?: string): string {
 
 const longDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 
-/** "2026-11-19" → "19 November 2026". */
+/** "2026-11-19" → "19 November 2026". A day outside years 0000 to 9999 comes back unchanged rather than throwing. */
 export function formatLongDate(isoDate: string): string {
-  return longDate.format(new Date(`${isoDate}T00:00:00Z`))
+  const day = new Date(`${isoDate}T00:00:00Z`)
+  return Number.isNaN(day.getTime()) ? isoDate : longDate.format(day)
 }

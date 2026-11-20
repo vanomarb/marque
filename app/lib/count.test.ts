@@ -11,7 +11,7 @@ test('a change while a count is running carries on from the figure on screen, no
   assert.equal(countFrom('$78,300', 105_000, 45_000), 78_300)
   // At rest the figure on screen is the last target.
   assert.equal(countFrom('$45,000', 45_000, 60_000), 45_000)
-  // Text that isn't a peso figure falls back to the last target.
+  // Text that isn't a dollar figure falls back to the last target.
   assert.equal(countFrom('', 45_000, 60_000), 45_000)
   assert.equal(countFrom(null, 45_000, 60_000), 45_000)
 })

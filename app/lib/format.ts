@@ -5,9 +5,13 @@ export function dollars(amount: number): string {
   return `$${dollarNumber.format(Math.round(amount))}`
 }
 
-/** -162 → "−$162", with a true minus sign, so a discount reads as one. */
-export function signedDollars(amount: number): string {
-  return amount < 0 ? `\u2212${dollars(-amount)}` : dollars(amount)
+/**
+ * A price as markup: with a regular price, that one struck through and the first-project price beside it in the
+ * savings colour, each named for screen readers, which don't read strikethrough. Built from numbers only.
+ */
+export function priceMarkup(amount: number, regular?: number): string {
+  if (regular === undefined || regular === amount) return dollars(amount)
+  return `<s class="price-was"><span class="sr-only">Regular price </span>${dollars(regular)}</s> <span class="price-now"><span class="sr-only">first-project price </span>${dollars(amount)}</span>`
 }
 
 export function parseDollars(text: string | null | undefined): number | null {
